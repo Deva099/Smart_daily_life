@@ -5,8 +5,9 @@ import { getHealthData, upsertHealthData } from '../controllers/healthController
 import { getNotes, addNote, updateNote, deleteNote } from '../controllers/noteController.js';
 import { getGoals, addGoal, deleteGoal, updateGoal } from '../controllers/goalController.js';
 import { getExpenses, addExpense, deleteExpense } from '../controllers/expenseController.js';
-import { signup, login, checkEmail, forgotPassword, verifyOtp, resetPassword, forgotUsername, getProfile, refresh } from '../controllers/authController.js';
+import { signup, login, checkEmail, forgotPassword, verifyOtp, resetPassword, forgotUsername, getProfile, refresh, updateProfilePic } from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
+import upload from '../middleware/uploadMiddleware.js';
 import { activeNotifications, clearNotification } from '../services/notificationService.js';
 
 const router = express.Router();
@@ -20,6 +21,7 @@ router.post('/auth/forgot-password', forgotPassword);
 router.post('/auth/verify-otp', verifyOtp);
 router.post('/auth/reset-password', resetPassword);
 router.post('/auth/forgot-username', forgotUsername);
+router.put('/auth/profile-pic', protect, upload.single('image'), updateProfilePic);
 router.get('/auth/profile', protect, getProfile);
 
 // --- Protected Routes ---

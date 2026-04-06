@@ -103,6 +103,20 @@ export const getProfile = async () => {
   return handleResponse(response);
 };
 
+export const updateProfilePic = async (formData) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/auth/profile-pic`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`
+      // Note: We DO NOT set 'Content-Type': 'multipart/form-data' manually.
+      // The browser will set it automatically with the correct boundary when passing FormData.
+    },
+    body: formData
+  });
+  return handleResponse(response);
+};
+
 // --- TASKS API ---
 export const fetchTasks = async () => {
   const response = await fetch(`${API_URL}/tasks`, { headers: getHeaders() });

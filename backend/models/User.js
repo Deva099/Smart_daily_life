@@ -40,6 +40,10 @@ const userSchema = new mongoose.Schema({
     default: 'free'
   },
   subscriptionExpiry: Date,
+  profilePic: {
+    type: String,
+    default: ''
+  },
   createdAt: {
     type: Date,
     default: Date.now

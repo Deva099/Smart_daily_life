@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Moon, Sun, Bell, Shield, LogOut, X, ArrowRight } from 'lucide-react';
+import { Moon, Sun, Bell, Shield, LogOut, X, ArrowRight, Camera, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { updateProfilePic } from '../services/api';
 
 const ToggleSwitch = ({ checked, onChange }) => (
   <div 
@@ -22,11 +23,15 @@ const ToggleSwitch = ({ checked, onChange }) => (
 );
 
 const ProfileView = ({ theme, setTheme }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const userName = user?.name || 'User';
   const initial = userName.charAt(0).toUpperCase();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const fileInputRef = useRef(null);
+
   const [notifSettings, setNotifSettings] = useState(() => {
     return JSON.parse(localStorage.getItem('notificationSettings')) || {
       pushEnabled: true,
@@ -49,8 +54,58 @@ const ProfileView = ({ theme, setTheme }) => {
     logout();
   };
 
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Local validation
+    if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+      setMessage({ type: 'error', text: 'Only JPG and PNG files are allowed.' });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'File size must be less than 2MB.' });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setUploading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      const res = await updateProfilePic(formData);
+      updateUser({ profilePic: res.profilePic });
+      setMessage({ type: 'success', text: 'Profile picture updated!' });
+      
+      // Auto clear success message
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message || 'Upload failed' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="view-section" style={{ maxWidth: '600px', margin: '0 auto', width: '100%', animation: 'fadeIn 0.6s ease-out' }}>
+      
+      {message.text && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '0.5rem',
+          padding: '1rem', borderRadius: '12px', marginBottom: '1rem',
+          background: message.type === 'success' ? 'var(--success-light)' : 'var(--danger-light)',
+          color: message.type === 'success' ? 'var(--success)' : 'var(--danger)',
+          border: `1px solid ${message.type === 'success' ? 'var(--success)' : 'var(--danger)'}`,
+          animation: 'fadeSlideUp 0.3s ease-out',
+          fontSize: '0.9rem', fontWeight: 500
+        }}>
+          {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+          {message.text}
+        </div>
+      )}
+
       <div className="card flex flex-col items-center justify-center mb-6" style={{ 
         textAlign: 'center', 
         padding: '3.5rem 2rem',
@@ -59,25 +114,64 @@ const ProfileView = ({ theme, setTheme }) => {
         position: 'relative',
         overflow: 'hidden'
       }}>
-        {/* Subtle background glow */}
         <div style={{
           position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px',
           background: 'var(--accent-primary)', filter: 'blur(100px)', opacity: 0.1, pointerEvents: 'none'
         }} />
         
         <div className="avatar-container" style={{ position: 'relative', marginBottom: '1.5rem' }}>
-          <div className="avatar" style={{ 
-            width: '100px', height: '100px', fontSize: '2.8rem', 
-            background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
-            border: '4px solid rgba(255, 255, 255, 0.1)'
-          }}>
-            {initial}
+          <div 
+            className="avatar" 
+            style={{ 
+              width: '120px', height: '120px', fontSize: '3rem', 
+              background: user.profilePic ? `url(${user.profilePic}) center/cover` : 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+              boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
+              border: '4px solid var(--surface-solid)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onClick={() => !uploading && fileInputRef.current.click()}
+          >
+            {!user.profilePic && initial}
+            
+            {uploading && (
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'rgba(0,0,0,0.4)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 2
+              }}>
+                <Loader2 className="animate-spin" size={32} color="white" />
+              </div>
+            )}
           </div>
-          <div style={{
-            position: 'absolute', bottom: '2px', right: '2px', width: '24px', height: '24px',
-            background: '#10b981', border: '3px solid var(--bg-card)', borderRadius: '50%'
-          }} title="Online" />
+
+          <button 
+            type="button"
+            onClick={() => fileInputRef.current.click()}
+            disabled={uploading}
+            style={{
+              position: 'absolute', bottom: '5px', right: '5px',
+              width: '36px', height: '36px', borderRadius: '50%',
+              background: 'var(--accent-primary)', color: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '4px solid var(--surface-solid)',
+              cursor: 'pointer', boxShadow: 'var(--shadow-sm)',
+              transition: 'transform 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            {uploading ? <Loader2 className="animate-spin" size={16} /> : <Camera size={18} />}
+          </button>
+
+          <input 
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            style={{ display: 'none' }}
+          />
         </div>
         
         <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>{userName}</h2>

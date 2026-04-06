@@ -272,13 +272,47 @@ export const forgotUsername = async (req, res, next) => {
   }
 };
 
+// @desc    Update profile picture
+// @route   PUT /api/auth/profile-pic
+// @access  Private
+export const updateProfilePic = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return next(new ErrorResponse('Please upload an image file', 400));
+    }
+
+    const user = await User.findById(req.user.id);
+    user.profilePic = req.file.path; // Cloudinary URL automatically added by multer-storage-cloudinary
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        profilePic: user.profilePic
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get profile
 // @route   GET /api/auth/profile
 // @access  Private
 export const getProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-    res.status(200).json({ success: true, data: user });
+    res.status(200).json({ 
+      success: true, 
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        profilePic: user.profilePic,
+        subscriptionType: user.subscriptionType
+      } 
+    });
   } catch (error) {
     next(error);
   }
