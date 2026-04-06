@@ -53,6 +53,10 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get("/", (req, res) => {
+  res.send("🚀 Smart Daily Life Backend is Running!");
+});
+
 // App Routes
 app.use('/api', apiRoutes);
 
