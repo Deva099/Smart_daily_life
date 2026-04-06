@@ -83,16 +83,19 @@ const AppContent = () => {
         </main>
       ) : (
         <div className="app-container">
-          <Sidebar 
-            isMobileOpen={isMobileOpen}
-            setIsMobileOpen={setIsMobileOpen}
-          />
+          {/* Sidebar - Visible ONLY on Desktop */}
+          <div className="desktop-only-flex">
+            <Sidebar 
+              isMobileOpen={isMobileOpen}
+              setIsMobileOpen={setIsMobileOpen}
+            />
+          </div>
           
           <main className="main-content">
             {/* Mobile Header - Visible only on mobile */}
             <div className="mobile-header mobile-only-flex">
               <div className="mobile-logo">
-                <div className="logo-icon" style={{ background: 'var(--accent-primary-light)', padding: '0.4rem', borderRadius: '10px' }}>
+                <div className="logo-icon" style={{ background: 'rgba(124, 58, 237, 0.1)', padding: '0.4rem', borderRadius: '12px' }}>
                   <LayoutGrid size={24} color="var(--accent-primary)" />
                 </div>
                 <span>SmartLife</span>
