@@ -1,39 +1,53 @@
 import Health from '../models/Health.js';
+import ErrorResponse from '../utils/errorResponse.js';
 
+// @desc    Get health data for a specific date
+// @route   GET /api/health/:dateStr
+// @access  Private
 export const getHealthData = async (req, res, next) => {
   try {
     const { dateStr } = req.params;
     const userId = req.user._id;
     
-    // Find existing or return default baseline
     let health = await Health.findOne({ userId, dateStr });
+    
     if (!health) {
-      health = {
-        userId,
-        dateStr,
-        waterIntake: 0,
-        sleepHours: 0,
-        steps: 0,
-        exerciseMinutes: 0
-      };
+      // Return a default object if no data exists for that date
+      return res.status(200).json({
+        success: true,
+        data: {
+          userId,
+          dateStr,
+          waterIntake: 0,
+          sleepHours: 0,
+          steps: 0,
+          exerciseMinutes: 0
+        }
+      });
     }
-    res.json(health);
+    
+    res.status(200).json({ success: true, data: health });
   } catch (error) {
     next(error);
   }
 };
 
+// @desc    Upsert health data for a date
+// @route   PUT /api/health/:dateStr
+// @access  Private
 export const upsertHealthData = async (req, res, next) => {
   try {
     const { dateStr } = req.params;
     const userId = req.user._id;
     
-    // Ensure only valid updatable fields map dynamically
     const updateData = {};
-    if (req.body.waterIntake !== undefined) updateData.waterIntake = req.body.waterIntake;
-    if (req.body.sleepHours !== undefined) updateData.sleepHours = req.body.sleepHours;
-    if (req.body.steps !== undefined) updateData.steps = req.body.steps;
-    if (req.body.exerciseMinutes !== undefined) updateData.exerciseMinutes = req.body.exerciseMinutes;
+    const allowedFields = ['waterIntake', 'sleepHours', 'steps', 'exerciseMinutes'];
+    
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    });
 
     const health = await Health.findOneAndUpdate(
       { userId, dateStr },
@@ -41,7 +55,7 @@ export const upsertHealthData = async (req, res, next) => {
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     
-    res.json(health);
+    res.status(200).json({ success: true, data: health });
   } catch (error) {
     next(error);
   }

@@ -1,31 +1,32 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, CheckSquare, Activity, HeartPulse, User, Bell, Calendar, X, PanelLeftClose, PanelLeft, Sparkles } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { LayoutDashboard, CheckSquare, Activity, HeartPulse, User, Bell, Calendar, X, PanelLeftClose, PanelLeft } from 'lucide-react';
 
-const Sidebar = ({ activeView, setActiveView, isMobileOpen, setIsMobileOpen }) => {
+const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const navItems = [
-    { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
-    { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-    { id: 'habits', label: 'Habits', icon: Activity },
-    { id: 'calendar', label: 'Calendar', icon: Calendar },
-    { id: 'health', label: 'Health', icon: HeartPulse },
-    { id: 'reminders', label: 'Alerts', icon: Bell },
-    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'dashboard', path: '/', label: 'Home', icon: LayoutDashboard },
+    { id: 'tasks', path: '/tasks', label: 'Tasks', icon: CheckSquare },
+    { id: 'habits', path: '/habits', label: 'Habits', icon: Activity },
+    { id: 'calendar', path: '/calendar', label: 'Calendar', icon: Calendar },
+    { id: 'health', path: '/health', label: 'Health', icon: HeartPulse },
+    { id: 'profile', path: '/profile', label: 'Profile', icon: User },
   ];
 
   return (
     <aside className={`sidebar ${isMobileOpen ? 'mobile-open' : ''} ${isExpanded ? 'expanded' : 'collapsed'}`}>
       <div className="sidebar-header">
-        <div 
+        <NavLink 
+          to="/" 
           className="logo" 
-          onClick={() => { setActiveView('dashboard'); setIsMobileOpen(false); }} 
+          onClick={() => setIsMobileOpen(false)} 
         >
           <div className="logo-icon">
             <LayoutDashboard size={isExpanded ? 24 : 20} color="var(--accent-primary)" />
           </div>
           <span className="sidebar-brand">SmartLife</span>
-        </div>
+        </NavLink>
         
         {/* Toggle Button for Desktop */}
         <button 
@@ -45,18 +46,18 @@ const Sidebar = ({ activeView, setActiveView, isMobileOpen, setIsMobileOpen }) =
       <nav className="sidebar-nav">
         {navItems.map(item => {
           const Icon = item.icon;
-          const isActive = activeView === item.id;
           return (
-            <button
+            <NavLink
               key={item.id}
-              className={`nav-item ${isActive ? 'active' : ''}`}
-              onClick={() => { setActiveView(item.id); setIsMobileOpen(false); }}
+              to={item.path}
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              onClick={() => setIsMobileOpen(false)}
               aria-label={item.label}
             >
-              <Icon size={22} strokeWidth={isActive ? 2.5 : 2} style={{ flexShrink: 0 }} />
+              <Icon size={22} style={{ flexShrink: 0 }} />
               <span className="sidebar-label">{item.label}</span>
               <span className="custom-tooltip">{item.label}</span>
-            </button>
+            </NavLink>
           );
         })}
       </nav>

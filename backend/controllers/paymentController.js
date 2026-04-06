@@ -1,22 +1,24 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import User from '../models/User.js';
+import ErrorResponse from '../utils/errorResponse.js';
 
-// Setup Razorpay Context (Graceful fallback to mock keys if not embedded in .env)
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_mockKeyIdXyz123',
   key_secret: process.env.RAZORPAY_KEY_SECRET || 'MockTestSecretSecureHash456'
 });
 
-export const createOrder = async (req, res) => {
+// @desc    Create a payment order
+// @route   POST /api/payments/order
+// @access  Private
+export const createOrder = async (req, res, next) => {
   try {
     const { plan } = req.body;
     
-    // Base convert amount to atomic paisa values (1 INR = 100 paisa)
     let amount = 0;
     if (plan === 'medium') amount = 399 * 100;
     else if (plan === 'premium') amount = 799 * 100;
-    else return res.status(400).json({ message: 'Invalid subscription tier selected' });
+    else return next(new ErrorResponse('Invalid subscription tier selected', 400));
 
     const options = {
       amount, 
@@ -25,19 +27,21 @@ export const createOrder = async (req, res) => {
     };
 
     const order = await razorpay.orders.create(options);
-    if (!order) return res.status(500).json({ message: 'Error establishing Razorpay connection block.' });
+    if (!order) return next(new ErrorResponse('Error establishing Razorpay connection', 500));
 
-    res.json(order);
+    res.status(200).json({ success: true, data: order });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
 
-export const verifyPayment = async (req, res) => {
+// @desc    Verify payment signature
+// @route   POST /api/payments/verify
+// @access  Private
+export const verifyPayment = async (req, res, next) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan } = req.body;
     
-    // Hash cross-evaluation logic exactly against webhook
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSign = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || 'MockTestSecretSecureHash456')
@@ -45,36 +49,34 @@ export const verifyPayment = async (req, res) => {
       .digest("hex");
 
     if (razorpay_signature === expectedSign) {
-      // Digital cryptographic signature parsed uniquely. Upgrade the targeted user in the database.
       const user = await User.findById(req.user._id);
-      if (user) {
-        user.subscriptionType = plan;
-        user.isPremium = true;
-        
-        // Append a rolling 30 days subscription active threshold
-        const expiry = new Date();
-        expiry.setDate(expiry.getDate() + 30);
-        user.subscriptionExpiry = expiry;
-        
-        const updatedUser = await user.save();
-        
-        return res.json({ 
-          message: "Payment successfully verified.",
-          user: {
-            _id: updatedUser._id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            isPremium: updatedUser.isPremium,
-            subscriptionType: updatedUser.subscriptionType,
-            subscriptionExpiry: updatedUser.subscriptionExpiry
-          }
-        });
-      }
-      return res.status(404).json({ message: "Validated successfully, but native User context unlinked." });
+      if (!user) return next(new ErrorResponse('User not found', 404));
+
+      user.subscriptionType = plan;
+      user.isPremium = true;
+      
+      const expiry = new Date();
+      expiry.setDate(expiry.getDate() + 30);
+      user.subscriptionExpiry = expiry;
+      
+      const updatedUser = await user.save();
+      
+      res.status(200).json({ 
+        success: true,
+        message: "Payment verified successfully",
+        user: {
+          _id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          isPremium: updatedUser.isPremium,
+          subscriptionType: updatedUser.subscriptionType,
+          subscriptionExpiry: updatedUser.subscriptionExpiry
+        }
+      });
     } else {
-      return res.status(400).json({ message: "Invalid cryptographical payment signature. Warning." });
+      return next(new ErrorResponse('Invalid payment signature', 400));
     }
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };

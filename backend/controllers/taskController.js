@@ -1,20 +1,27 @@
 import Task from '../models/Task.js';
+import ErrorResponse from '../utils/errorResponse.js';
 
+// @desc    Get all tasks for user
+// @route   GET /api/tasks
+// @access  Private
 export const getTasks = async (req, res, next) => {
   try {
     const tasks = await Task.find({ userId: req.user._id }).sort({ deadline: 1 });
-    res.json(tasks);
+    res.status(200).json({ success: true, data: tasks });
   } catch (error) {
     next(error);
   }
 };
 
+// @desc    Add a new task
+// @route   POST /api/tasks
+// @access  Private
 export const addTask = async (req, res, next) => {
   try {
     const { title, priority, deadline, dateStr, hasReminder, reminderTime, notified } = req.body;
+    
     if (!title || !title.trim()) {
-      res.status(400);
-      return next(new Error('Task title is required'));
+      return next(new ErrorResponse('Task title is required', 400));
     }
     
     const task = await Task.create({ 
@@ -27,44 +34,51 @@ export const addTask = async (req, res, next) => {
       reminderTime,
       notified
     });
-    res.status(201).json(task);
+    
+    res.status(201).json({ success: true, data: task });
   } catch (error) {
     next(error);
   }
 };
 
+// @desc    Update a task
+// @route   PUT /api/tasks/:id
+// @access  Private
 export const updateTask = async (req, res, next) => {
   try {
     const task = await Task.findOne({ _id: req.params.id, userId: req.user._id });
+    
     if (!task) {
-      res.status(404);
-      return next(new Error('Task not found or unauthorized'));
+      return next(new ErrorResponse('Task not found or unauthorized', 404));
     }
     
-    if (req.body.title) task.title = req.body.title;
-    if (req.body.priority) task.priority = req.body.priority;
-    if (req.body.deadline !== undefined) task.deadline = req.body.deadline;
-    if (req.body.completed !== undefined) task.completed = req.body.completed;
-    if (req.body.dateStr) task.dateStr = req.body.dateStr;
-    if (req.body.hasReminder !== undefined) task.hasReminder = req.body.hasReminder;
-    if (req.body.reminderTime !== undefined) task.reminderTime = req.body.reminderTime;
-    if (req.body.notified !== undefined) task.notified = req.body.notified;
+    // Update fields
+    const fieldsToUpdate = ['title', 'priority', 'deadline', 'completed', 'dateStr', 'hasReminder', 'reminderTime', 'notified'];
+    fieldsToUpdate.forEach(field => {
+      if (req.body[field] !== undefined) {
+        task[field] = (field === 'title') ? req.body[field].trim() : req.body[field];
+      }
+    });
     
     const updatedTask = await task.save();
-    res.json(updatedTask);
+    res.status(200).json({ success: true, data: updatedTask });
   } catch (error) {
     next(error);
   }
 };
 
+// @desc    Delete a task
+// @route   DELETE /api/tasks/:id
+// @access  Private
 export const deleteTask = async (req, res, next) => {
   try {
     const task = await Task.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+    
     if (!task) {
-      res.status(404);
-      return next(new Error('Task not found or unauthorized'));
+      return next(new ErrorResponse('Task not found or unauthorized', 404));
     }
-    res.json({ message: 'Task removed successfully' });
+    
+    res.status(200).json({ success: true, message: 'Task removed successfully' });
   } catch (error) {
     next(error);
   }

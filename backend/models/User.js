@@ -29,12 +29,25 @@ const userSchema = new mongoose.Schema({
   },
   otp: String,
   otpExpiry: Date,
-  refreshToken: String,
+  isPremium: {
+    type: Boolean,
+    default: false
+  },
+  subscriptionType: {
+    type: String,
+    enum: ['free', 'medium', 'premium'],
+    default: 'free'
+  },
+  subscriptionExpiry: Date,
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
+
+// Indexes for performance
+userSchema.index({ email: 1 });
+userSchema.index({ username: 1 });
 
 // Encrypt password using bcrypt
 userSchema.pre('save', async function() {

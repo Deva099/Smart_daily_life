@@ -13,6 +13,8 @@ process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
 });
 
+import errorHandler from './middleware/errorMiddleware.js';
+
 // Setup environment variables
 dotenv.config();
 
@@ -25,42 +27,39 @@ startNotificationEngine();
 const app = express();
 
 // Middleware
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:5173', // Vite default
+  'http://localhost:3000',
+  'http://127.0.0.1:5173'
+].filter(Boolean);
+
 app.use(cors({
-  origin: '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
-// Base Route
-app.get('/', (req, res) => {
-  res.send('Smart Daily Life API is running...');
-});
-
-// App Routes
+// Request logging (simplified for clear visibility)
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] 📡 Incoming ${req.method} ${req.url}`);
-  // Add debug point as requested
-  console.log("API hit - Flow processing started");
+  console.log(`[${new Date().toISOString()}] 📡 ${req.method} ${req.url}`);
   next();
 });
 
+// App Routes
 app.use('/api', apiRoutes);
 
-// Error Handling Middleware
-app.use((err, req, res, next) => {
-  console.log("🔴 Global Error Handler caught an error");
-  console.error(err);
-  
-  const statusCode = (res.statusCode === 200 || !res.statusCode) ? 500 : res.statusCode;
-  const message = err.message || "Server error";
-  
-  res.status(statusCode).json({
-    success: false,
-    message: message,
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
-  });
-});
+// Global Error Handling Middleware
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, '0.0.0.0', () => {

@@ -8,20 +8,30 @@ const getHeaders = () => {
   };
 };
 
+/**
+ * Global response handler
+ * Now compatible with Senior Review standardized backend: { success: true, data: ... }
+ */
 const handleResponse = async (response) => {
+  const data = await response.json();
+  
   if (response.status === 401) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.reload(); 
+    // If not on auth page, redirect or clear
+    if (!window.location.pathname.startsWith('/auth')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/auth';
+    }
   }
   
-  const data = await response.json();
-  if (!response.ok) {
-    const error = new Error(data.message || 'Something went wrong');
-    error.action = data.action; // Attach action hint if present
+  if (!response.ok || data.success === false) {
+    const error = new Error(data.error || data.message || 'Something went wrong');
+    error.status = response.status;
     throw error;
   }
-  return data;
+
+  // Standardized backend returns actual payload in .data
+  return data.data !== undefined ? data.data : data;
 };
 
 // --- AUTH API ---
@@ -85,6 +95,11 @@ export const forgotUsernameAPI = async (email) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email })
   });
+  return handleResponse(response);
+};
+
+export const getProfile = async () => {
+  const response = await fetch(`${API_URL}/auth/profile`, { headers: getHeaders() });
   return handleResponse(response);
 };
 
@@ -205,12 +220,55 @@ export const fetchGoals = async () => {
   return handleResponse(response);
 };
 
+export const createGoal = async (goalData) => {
+  const response = await fetch(`${API_URL}/goals`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(goalData)
+  });
+  return handleResponse(response);
+};
+
+export const updateGoal = async (id, updates) => {
+  const response = await fetch(`${API_URL}/goals/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify(updates)
+  });
+  return handleResponse(response);
+};
+
+export const deleteGoal = async (id) => {
+  const response = await fetch(`${API_URL}/goals/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  return handleResponse(response);
+};
+
 // --- AI API ---
 export const askAI = async (query, contextData) => {
   const response = await fetch(`${API_URL}/ai/chat`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ query, data: contextData })
+  });
+  return handleResponse(response);
+};
+
+export const getFinancialAdvice = async () => {
+  const response = await fetch(`${API_URL}/ai/financial-advice`, {
+    method: 'POST',
+    headers: getHeaders()
+  });
+  return handleResponse(response);
+};
+
+export const getDashboardSummary = async (data) => {
+  const response = await fetch(`${API_URL}/ai/dashboard-summary`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ data })
   });
   return handleResponse(response);
 };

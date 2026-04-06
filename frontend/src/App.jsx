@@ -1,8 +1,9 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import Sidebar from './components/Sidebar';
 import NotificationPopup from './components/NotificationPopup';
-import { NotificationProvider } from './context/NotificationContext';
 import { Menu, Loader2, ArrowRight } from 'lucide-react';
 
 // Lazy load views
@@ -16,9 +17,20 @@ const ProfileView = lazy(() => import('./pages/ProfileView'));
 const AuthView = lazy(() => import('./pages/AuthView'));
 const AssistantView = lazy(() => import('./pages/AssistantView'));
 
+const ProtectedRoute = ({ children }) => {
+  const { token, loading } = useAuth();
+  
+  if (loading) return null; // Let AppContent handle splash
+  
+  if (!token) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  return children;
+};
+
 const AppContent = () => {
-  const { user, token, loading } = useAuth();
-  const [activeView, setActiveView] = useState(localStorage.getItem('activeView') || 'dashboard');
+  const { token, loading } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
 
@@ -26,10 +38,6 @@ const AppContent = () => {
     document.body.className = theme;
     localStorage.setItem('theme', theme);
   }, [theme]);
-
-  useEffect(() => {
-    localStorage.setItem('activeView', activeView);
-  }, [activeView]);
 
   if (loading) {
     return (
@@ -43,49 +51,47 @@ const AppContent = () => {
     );
   }
 
-  if (!token) {
-    return (
-      <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin" /></div>}>
-        <AuthView />
-      </Suspense>
-    );
-  }
-
-  const renderView = () => {
-    switch (activeView) {
-      case 'dashboard': return <DashboardView setActiveView={setActiveView} />;
-      case 'tasks': return <TasksView />;
-      case 'habits': return <HabitsView />;
-      case 'health': return <HealthView />;
-      case 'calendar': return <CalendarView />;
-      case 'reminders': return <RemindersView />;
-      case 'profile': return <ProfileView theme={theme} setTheme={setTheme} />;
-      default: return <DashboardView setActiveView={setActiveView} />;
-    }
-  };
-
   return (
-    <div className={`app-container ${theme}`}>
-      <Sidebar 
-        activeView={activeView} 
-        setActiveView={setActiveView} 
-        isMobileOpen={isMobileOpen}
-        setIsMobileOpen={setIsMobileOpen}
-      />
-      <main className="main-content">
-        <button className="mobile-only-flex btn-icon-only mb-4" onClick={() => setIsMobileOpen(true)}>
-          <Menu size={24} />
-        </button>
-        <Suspense fallback={
-          <div className="flex items-center justify-center p-12">
-            <Loader2 className="animate-spin" size={32} color="var(--accent-primary)" />
-          </div>
-        }>
-          {renderView()}
-        </Suspense>
-      </main>
-      <NotificationPopup />
-    </div>
+    <Router>
+      <div className={`app-container ${theme}`}>
+        {token && (
+          <Sidebar 
+            isMobileOpen={isMobileOpen}
+            setIsMobileOpen={setIsMobileOpen}
+          />
+        )}
+        
+        <main className={token ? "main-content" : "auth-content"}>
+          {token && (
+            <button className="mobile-only-flex btn-icon-only mb-4" onClick={() => setIsMobileOpen(true)}>
+              <Menu size={24} />
+            </button>
+          )}
+
+          <Suspense fallback={
+            <div className="flex items-center justify-center p-12">
+              <Loader2 className="animate-spin" size={32} color="var(--accent-primary)" />
+            </div>
+          }>
+            <Routes>
+              <Route path="/auth" element={!token ? <AuthView /> : <Navigate to="/" />} />
+              
+              <Route path="/" element={<ProtectedRoute><DashboardView /></ProtectedRoute>} />
+              <Route path="/tasks" element={<ProtectedRoute><TasksView /></ProtectedRoute>} />
+              <Route path="/habits" element={<ProtectedRoute><HabitsView /></ProtectedRoute>} />
+              <Route path="/health" element={<ProtectedRoute><HealthView /></ProtectedRoute>} />
+              <Route path="/calendar" element={<ProtectedRoute><CalendarView /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfileView theme={theme} setTheme={setTheme} /></ProtectedRoute>} />
+              <Route path="/assistant" element={<ProtectedRoute><AssistantView /></ProtectedRoute>} />
+              
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </main>
+        <NotificationPopup />
+      </div>
+    </Router>
   );
 };
 

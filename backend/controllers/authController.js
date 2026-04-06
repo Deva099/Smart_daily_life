@@ -2,17 +2,19 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import sendEmail from '../utils/sendEmail.js';
+import ErrorResponse from '../utils/errorResponse.js';
 
 // @desc    Check if email exists
 // @route   POST /api/auth/check-email
 // @access  Public
 export const checkEmail = async (req, res, next) => {
-  console.log('🔍 checkEmail reached with:', req.body);
   try {
     const { email } = req.body;
+    if (!email) {
+      return next(new ErrorResponse('Email is required', 400));
+    }
     const user = await User.findOne({ email });
-    console.log('🔍 user found:', !!user);
-    res.json({ exists: !!user });
+    res.status(200).json({ success: true, exists: !!user });
   } catch (error) {
     next(error);
   }
@@ -22,15 +24,13 @@ export const checkEmail = async (req, res, next) => {
 // @route   POST /api/auth/signup
 // @access  Public
 export const signup = async (req, res, next) => {
-  console.log('📝 Signup processing...');
   try {
     const { name, email, username, password } = req.body;
 
     // Check if user exists by email or username
     const userExists = await User.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
-      res.status(400); 
-      return next(new Error('User already exists with that email or username'));
+      return next(new ErrorResponse('User already exists with that email or username', 400));
     }
 
     // Create user
@@ -51,16 +51,12 @@ export const signup = async (req, res, next) => {
 // @route   POST /api/auth/login
 // @access  Public
 export const login = async (req, res, next) => {
-  console.log('🔑 Login processing...');
   try {
-    // Frontend might pass email field, but let's interpret it as an identifier (email or username)
     const identifier = req.body.email || req.body.username;
     const password = req.body.password;
 
-    // Validate inputs
     if (!identifier || !password) {
-      res.status(400);
-      return next(new Error('Please provide an email/username and password'));
+      return next(new ErrorResponse('Please provide an email/username and password', 400));
     }
 
     // Check for user
@@ -69,15 +65,12 @@ export const login = async (req, res, next) => {
     }).select('+password');
     
     if (!user) {
-      res.status(401);
-      return next(new Error('Invalid credentials'));
+      return next(new ErrorResponse('Invalid credentials', 401));
     }
 
-    // Check if password matches
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
-      res.status(401);
-      return next(new Error('Invalid credentials'));
+      return next(new ErrorResponse('Invalid credentials', 401));
     }
 
     await sendTokenResponse(user, 200, res);
@@ -88,16 +81,14 @@ export const login = async (req, res, next) => {
 
 // Get token from model, create cookie and send response
 const sendTokenResponse = async (user, statusCode, res) => {
-  // Create tokens
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: '15m' // Access token short lived
+    expiresIn: '15m'
   });
 
   const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: '30d' // Refresh token long lived
+    expiresIn: '30d'
   });
 
-  // Save refresh token to user
   user.refreshToken = refreshToken;
   await user.save({ validateBeforeSave: false });
 
@@ -120,8 +111,7 @@ export const refresh = async (req, res, next) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
-    res.status(401);
-    return next(new Error('Refresh token is required'));
+    return next(new ErrorResponse('Refresh token is required', 401));
   }
 
   try {
@@ -129,22 +119,16 @@ export const refresh = async (req, res, next) => {
     const user = await User.findById(decoded.id);
 
     if (!user || user.refreshToken !== refreshToken) {
-      res.status(401);
-      return next(new Error('Invalid refresh token'));
+      return next(new ErrorResponse('Invalid refresh token', 401));
     }
 
-    // Issue new access token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: '15m'
     });
 
-    res.status(200).json({
-      success: true,
-      token
-    });
+    res.status(200).json({ success: true, token });
   } catch (error) {
-    res.status(401);
-    next(new Error('Refresh token expired or invalid'));
+    next(new ErrorResponse('Refresh token expired or invalid', 401));
   }
 };
 
@@ -152,23 +136,18 @@ export const refresh = async (req, res, next) => {
 // @route   POST /api/auth/forgot-password
 // @access  Public
 export const forgotPassword = async (req, res, next) => {
-  console.log('--- DEBUG: forgotPassword typeof next:', typeof next);
-  console.log('📩 Forgot Password processing...');
   try {
     const user = await User.findOne({ email: req.body.email });
 
     if (!user) {
-      res.status(404);
-      return next(new Error('User not found with that email'));
+      return next(new ErrorResponse('User not found with that email', 404));
     }
 
-    // Generate 6 digit OTP (saved to model hashed)
     const otp = user.getOTP();
     await user.save({ validateBeforeSave: false });
 
-    console.log("-----------------------------------------");
-    console.log("🔑 OTP generated:", otp);
-    console.log("-----------------------------------------");
+    // Important for logs during development
+    console.log(`[DEV] OTP for ${user.email} is: ${otp}`);
 
     const message = `You requested a password reset. Your OTP is: \n\n ${otp} \n\nThis OTP is valid for 5 minutes.`;
 
@@ -180,17 +159,13 @@ export const forgotPassword = async (req, res, next) => {
       });
       res.status(200).json({ success: true, message: 'OTP sent to your email' });
     } catch (err) {
-      console.error(err);
       user.otp = undefined;
       user.otpExpiry = undefined;
       await user.save({ validateBeforeSave: false });
 
-      res.status(500);
-      console.log('--- DEBUG: forgotPassword typeof next in catch:', typeof next);
-      return next(new Error('Email could not be sent'));
+      return next(new ErrorResponse('Email could not be sent', 500));
     }
   } catch (err) {
-    console.log('--- DEBUG: forgotPassword typeof next in outer catch:', typeof next);
     next(err);
   }
 };
@@ -199,20 +174,14 @@ export const forgotPassword = async (req, res, next) => {
 // @route   POST /api/auth/verify-otp
 // @access  Public
 export const verifyOtp = async (req, res, next) => {
-  console.log('✅ Verify OTP processing...');
   try {
     const { email, otp } = req.body;
 
     if (!email || !otp) {
-      res.status(400);
-      return next(new Error('Email and OTP are required'));
+      return next(new ErrorResponse('Email and OTP are required', 400));
     }
 
-    // Hash the raw OTP provided by user to compare with DB
-    const hashedOTP = crypto
-      .createHash('sha256')
-      .update(otp)
-      .digest('hex');
+    const hashedOTP = crypto.createHash('sha256').update(otp).digest('hex');
 
     const user = await User.findOne({
       email,
@@ -221,11 +190,10 @@ export const verifyOtp = async (req, res, next) => {
     });
 
     if (!user) {
-      res.status(400);
-      return next(new Error('Invalid or expired OTP'));
+      return next(new ErrorResponse('Invalid or expired OTP', 400));
     }
 
-    res.status(200).json({ success: true, message: 'OTP Verified successfully. You can now reset your password.' });
+    res.status(200).json({ success: true, message: 'OTP Verified successfully.' });
   } catch (err) {
     next(err);
   }
@@ -235,19 +203,14 @@ export const verifyOtp = async (req, res, next) => {
 // @route   POST /api/auth/reset-password
 // @access  Public
 export const resetPassword = async (req, res, next) => {
-  console.log('🔄 Reset Password processing...');
   try {
     const { email, otp, newPassword } = req.body;
     
     if (!email || !otp || !newPassword) {
-      res.status(400);
-      return next(new Error('Email, OTP, and newPassword are required'));
+      return next(new ErrorResponse('All fields are required', 400));
     }
 
-    const hashedOTP = crypto
-      .createHash('sha256')
-      .update(otp)
-      .digest('hex');
+    const hashedOTP = crypto.createHash('sha256').update(otp).digest('hex');
 
     const user = await User.findOne({
       email,
@@ -256,16 +219,13 @@ export const resetPassword = async (req, res, next) => {
     });
 
     if (!user) {
-      res.status(400);
-      return next(new Error('Invalid or expired OTP'));
+      return next(new ErrorResponse('Invalid or expired OTP', 400));
     }
 
     if (newPassword.length < 6) {
-       res.status(400);
-       return next(new Error('Password must be at least 6 characters'));
+       return next(new ErrorResponse('Password must be at least 6 characters', 400));
     }
 
-    // Update password
     user.password = newPassword;
     user.otp = undefined;
     user.otpExpiry = undefined;
@@ -282,24 +242,20 @@ export const resetPassword = async (req, res, next) => {
 // @route   POST /api/auth/forgot-username
 // @access  Public
 export const forgotUsername = async (req, res, next) => {
-  console.log('👤 Forgot Username processing...');
   try {
     const { email } = req.body;
     
     if (!email) {
-      res.status(400);
-      return next(new Error('Please provide an email'));
+      return next(new ErrorResponse('Please provide an email', 400));
     }
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      // For security reasons, don't expose that the email doesn't exist
-      // Just act as if we sent it
-      return res.status(200).json({ success: true, message: 'If this email is registered, your username has been sent.' });
+      return res.status(200).json({ success: true, message: 'If registered, your username has been sent.' });
     }
 
-    const message = `Hello ${user.name},\n\nYou requested to recover your username.\nYour username is: ${user.username}`;
+    const message = `Hello ${user.name},\n\nYour username is: ${user.username}`;
     
     try {
       await sendEmail({
@@ -307,27 +263,22 @@ export const forgotUsername = async (req, res, next) => {
         subject: 'Smart Daily Life - Username Recovery',
         message
       });
-      res.status(200).json({ success: true, message: 'If this email is registered, your username has been sent.' });
+      res.status(200).json({ success: true, message: 'If registered, your username has been sent.' });
     } catch (err) {
-      console.error(err);
-      res.status(500);
-      return next(new Error('Email could not be sent'));
+      return next(new ErrorResponse('Email could not be sent', 500));
     }
   } catch (err) {
     next(err);
   }
 };
-// @desc    Get current logged in user (profile)
+
+// @desc    Get profile
 // @route   GET /api/auth/profile
 // @access  Private
 export const getProfile = async (req, res, next) => {
-  console.log('👤 profile fetch for user id:', req.user.id);
   try {
     const user = await User.findById(req.user.id);
-    res.status(200).json({
-      success: true,
-      data: user
-    });
+    res.status(200).json({ success: true, data: user });
   } catch (error) {
     next(error);
   }
