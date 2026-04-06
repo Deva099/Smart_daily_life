@@ -28,6 +28,7 @@ const ProfileView = ({ theme, setTheme }) => {
   const initial = userName.charAt(0).toUpperCase();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUploadInfoOpen, setIsUploadInfoOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const fileInputRef = useRef(null);
@@ -44,6 +45,15 @@ const ProfileView = ({ theme, setTheme }) => {
   const handleSaveSettings = () => {
     localStorage.setItem('notificationSettings', JSON.stringify(notifSettings));
     setIsModalOpen(false);
+  };
+
+  const handleCameraClick = () => {
+    setIsUploadInfoOpen(true);
+  };
+
+  const proceedToUpload = () => {
+    setIsUploadInfoOpen(false);
+    fileInputRef.current.click();
   };
 
   const toggleTheme = () => {
@@ -137,9 +147,10 @@ const ProfileView = ({ theme, setTheme }) => {
               boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
               border: '4px solid var(--surface-solid)',
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              cursor: 'pointer'
             }}
-            onClick={() => !uploading && fileInputRef.current.click()}
+            onClick={() => !uploading && handleCameraClick()}
           >
             {!user.profilePic && initial}
             
@@ -157,7 +168,7 @@ const ProfileView = ({ theme, setTheme }) => {
 
           <button 
             type="button"
-            onClick={() => fileInputRef.current.click()}
+            onClick={handleCameraClick}
             disabled={uploading}
             style={{
               position: 'absolute', bottom: '5px', right: '5px',
@@ -186,14 +197,6 @@ const ProfileView = ({ theme, setTheme }) => {
         <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>{userName}</h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 500 }}>
           SmartLife Member <span style={{ opacity: 0.6 }}>since 2026</span>
-        </p>
-        <p style={{ 
-          fontSize: '0.8rem', color: 'var(--text-muted)', 
-          marginTop: '0.5rem', fontWeight: 500, letterSpacing: '0.02em',
-          background: 'var(--accent-primary-light)', padding: '0.25rem 0.75rem',
-          borderRadius: '20px'
-        }}>
-          JPG, PNG • Max 2MB
         </p>
       </div>
 
@@ -388,6 +391,63 @@ const ProfileView = ({ theme, setTheme }) => {
             <div className="flex justify-end gap-3 mt-2 pt-4" style={{ borderTop: '1px solid var(--border-color)' }}>
               <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={handleSaveSettings}>Save Settings</button>
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
+      {isUploadInfoOpen && createPortal(
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.4)', zIndex: 1100,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem',
+          backdropFilter: 'blur(10px)', animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <div className="card shadow-lg flex flex-col gap-6" style={{ 
+            width: '100%', maxWidth: '400px', 
+            animation: 'fadeSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            border: '1px solid var(--accent-primary)',
+            padding: '2.5rem'
+          }}>
+            <div className="text-center">
+              <div className="btn-icon-only mb-4" style={{ 
+                margin: '0 auto', background: 'var(--accent-primary-light)', 
+                width: '64px', height: '64px', borderRadius: '50%' 
+              }}>
+                <Camera size={32} color="var(--accent-primary)" />
+              </div>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Upload Requirements</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                To keep the app fast for everyone, please ensure your image follows these guidelines:
+              </p>
+            </div>
+
+            <div style={{ background: 'var(--bg-color)', padding: '1.25rem', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div className="flex items-center gap-3">
+                <CheckCircle size={18} color="var(--success)" />
+                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>JPG or PNG Format</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle size={18} color="var(--success)" />
+                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Maximum size of 2MB</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button 
+                className="btn btn-primary w-full" 
+                style={{ padding: '1rem', borderRadius: '12px', fontSize: '1rem' }}
+                onClick={proceedToUpload}
+              >
+                Select Image
+              </button>
+              <button 
+                className="btn btn-secondary w-full" 
+                style={{ border: 'none', background: 'transparent', color: 'var(--text-muted)' }}
+                onClick={() => setIsUploadInfoOpen(false)}
+              >
+                Maybe later
+              </button>
             </div>
           </div>
         </div>
