@@ -143,7 +143,9 @@ function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <AppContent />
+        <Router>
+          <AppContent />
+        </Router>
       </NotificationProvider>
     </AuthProvider>
   );
