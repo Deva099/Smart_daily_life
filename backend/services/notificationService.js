@@ -3,7 +3,25 @@ import mongoose from 'mongoose';
 import Task from '../models/Task.js';
 import Habit from '../models/Habit.js';
 
-// Configuration for checking intervals
+// In-memory store for active notifications (frontend polls /api/notifications)
+export const activeNotifications = [];
+
+export const clearNotification = (id) => {
+  const index = activeNotifications.findIndex(n => n.id === id);
+  if (index !== -1) activeNotifications.splice(index, 1);
+};
+
+const addNotification = (message, type = 'reminder') => {
+  activeNotifications.push({
+    id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+    message,
+    type,
+    time: new Date().toISOString()
+  });
+  // Keep only the last 20 notifications in memory
+  if (activeNotifications.length > 20) activeNotifications.shift();
+};
+
 const RECHECK_INTERVAL = '*/5 * * * *'; // Every 5 minutes
 
 export const startNotificationEngine = () => {
@@ -11,7 +29,7 @@ export const startNotificationEngine = () => {
 
   cron.schedule(RECHECK_INTERVAL, async () => {
     try {
-      // 1. Safety Check: Database Connection
+      // Safety Check: Only run if database is connected
       if (mongoose.connection.readyState !== 1) {
         return console.log('⚠️ Notification Engine: DB not ready, skipping sync.');
       }
@@ -20,7 +38,7 @@ export const startNotificationEngine = () => {
       const currentTime = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
       const todayDateStr = now.toISOString().split('T')[0];
 
-      // 2. Process Task Reminders
+      // Process Task Reminders
       const tasksToNotify = await Task.find({
         hasReminder: true,
         notified: false,
@@ -29,18 +47,20 @@ export const startNotificationEngine = () => {
       });
 
       for (const task of tasksToNotify) {
-        console.log(`🔔 NOTIFICATION: Task "${task.title}" is due now!`);
+        const msg = `⏰ Task reminder: "${task.title}" is due now!`;
+        console.log(`🔔 ${msg}`);
+        addNotification(msg, 'task');
         task.notified = true;
         await task.save();
       }
 
-      // 3. Process Habit Reminders 
-      const habitsToNotify = await Habit.find({
-        time: currentTime
-      });
+      // Process Habit Reminders 
+      const habitsToNotify = await Habit.find({ time: currentTime });
 
       for (const habit of habitsToNotify) {
-        console.log(`🔔 NOTIFICATION: Habit "${habit.title}" time reached!`);
+        const msg = `💪 Habit time: "${habit.title}" — let's go!`;
+        console.log(`🔔 ${msg}`);
+        addNotification(msg, 'habit');
       }
 
     } catch (error) {
@@ -48,5 +68,5 @@ export const startNotificationEngine = () => {
     }
   });
 
-  console.log(`✅ Notification Engine: Running (Sync: ${RECHECK_INTERVAL})`);
+  console.log(`✅ Notification Engine: Running (every 5 min)`);
 };
