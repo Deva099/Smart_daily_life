@@ -183,44 +183,44 @@ const DashboardView = ({ setActiveView }) => {
   );
 
   const renderDesktopView = () => (
-    <div className="view-section" style={{ animation: 'fadeIn 0.4s ease-out' }}>
-      <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)', marginBottom: '1.25rem', fontWeight: 700 }}>Overview</h3>
+    <div className="view-section">
+      <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)', marginBottom: '1.25rem' }}>Overview</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
         {/* Card 1: Tasks */}
         <div className="card shadow-hover" style={{ padding: '1.5rem', cursor: 'pointer' }} onClick={() => setActiveView?.('tasks')}>
           <div className="flex justify-between items-center mb-4">
-            <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>Active Tasks</h4>
+            <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0 }}>Active Tasks</h4>
             <CheckSquare size={20} color="var(--accent-primary)" />
           </div>
-          <h3 style={{ fontSize: '2.2rem', fontWeight: 800, margin: '0 0 0.5rem 0' }}>{tasksDone}/{tasksTotal}</h3>
+          <h3 style={{ fontSize: '2rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>{tasksDone}/{tasksTotal}</h3>
           <div style={{ width: '100%', background: 'var(--border-solid)', height: '6px', borderRadius: '6px' }}>
-            <div style={{ width: `${progressPct}%`, height: '100%', background: 'var(--accent-primary)', borderRadius: '6px', transition: 'width 0.5s' }}></div>
+            <div style={{ width: `${progressPct}%`, height: '100%', background: 'var(--accent-primary)', borderRadius: '6px' }}></div>
           </div>
         </div>
 
         {/* Card 2: Habit Streak */}
         <div className="card shadow-hover" style={{ padding: '1.5rem', background: 'var(--accent-primary-light)', border: '1px solid var(--accent-primary)' }}>
           <div className="flex justify-between items-center mb-4">
-            <h4 style={{ fontSize: '0.9rem', color: 'var(--accent-primary)', margin: 0, fontWeight: 600 }}>Habit Streak</h4>
+            <h4 style={{ fontSize: '0.9rem', color: 'var(--accent-primary)', margin: 0 }}>Habit Streak</h4>
             <Activity size={20} color="var(--accent-secondary)" />
           </div>
-          <h3 style={{ fontSize: '2.2rem', fontWeight: 800, margin: 0 }}>{activeHabitStreak} Days <Flame size={32} fill="var(--accent-primary)" style={{ verticalAlign: 'middle', marginLeft: '8px' }} /></h3>
+          <h3 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{activeHabitStreak} Days <Flame size={28} fill="var(--accent-primary)" style={{ verticalAlign: 'middle', marginLeft: '8px' }} /></h3>
         </div>
 
-        {/* Card 3: Health Stats */}
+        {/* Card 3: Health */}
         <div className="card shadow-hover" style={{ padding: '1.5rem' }}>
           <div className="flex justify-between items-center mb-4">
-            <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0, fontWeight: 600 }}>Health Stats</h4>
+            <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0 }}>Stats</h4>
             <HeartPulse size={20} color="var(--success)" />
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center">
-              <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>5/8 cups</span>
-              <Droplets size={20} color="var(--accent-secondary)" />
+              <span style={{ fontSize: '1.1rem', fontWeight: 600 }}>5/8 cups</span>
+              <Droplets size={18} color="var(--accent-secondary)" />
             </div>
             <div className="flex justify-between items-center">
-              <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>6200 steps</span>
-              <Activity size={20} color="var(--success)" />
+              <span style={{ fontSize: '1.1rem', fontWeight: 600 }}>6200 steps</span>
+              <Check size={18} color="var(--success)" />
             </div>
           </div>
         </div>
@@ -230,17 +230,17 @@ const DashboardView = ({ setActiveView }) => {
         <div>
           <div className="flex justify-between items-center mb-4">
              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>My Habits</h3>
-             <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', borderRadius: '8px' }} onClick={() => setIsAddingHabit(true)}>+ New Habit</button>
+             <button className="btn btn-primary" style={{ padding: '0.5rem 1rem' }} onClick={() => setIsAddingHabit(true)}>+ New Habit</button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '1.2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
             {habits.map(h => (
-              <div key={h._id} className="card shadow-sm" style={{ padding: '1.5rem' }}>
-                <div className="flex justify-between items-center mb-4">
-                  <div className="btn-icon-only" style={{ background: 'var(--surface-color)', borderRadius: '10px' }}>{getDynamicIcon(h.title)}</div>
-                  <input type="checkbox" checked={h.completed} onChange={() => toggleHabit(h._id, h.completed)} style={{ width: '22px', height: '22px', cursor: 'pointer', accentColor: 'var(--accent-primary)' }} />
+              <div key={h._id} className="card shadow-sm" style={{ padding: '1.25rem' }}>
+                <div className="flex justify-between items-center mb-3">
+                  <div className="btn-icon-only" style={{ background: 'var(--surface-color)' }}>{getDynamicIcon(h.title)}</div>
+                  <input type="checkbox" checked={h.completed} onChange={() => toggleHabit(h._id, h.completed)} style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
                 </div>
-                <h4 style={{ margin: '0 0 0.4rem 0', fontWeight: 700, fontSize: '1.1rem' }}>{h.title}</h4>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{h.streak} Day Streak 🔥</p>
+                <h4 style={{ margin: '0 0 0.25rem 0', fontWeight: 700 }}>{h.title}</h4>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{h.streak} Day Streak 🔥</p>
               </div>
             ))}
           </div>
@@ -248,12 +248,12 @@ const DashboardView = ({ setActiveView }) => {
 
         <div>
            <h3 style={{ marginBottom: '1.25rem', fontSize: '1.2rem', fontWeight: 700 }}>Daily Progress</h3>
-           <div className="card text-center" style={{ padding: '2.5rem 1.5rem' }}>
-              <div style={{ position: 'relative', width: '130px', height: '130px', margin: '0 auto 1.5rem', borderRadius: '50%', background: `conic-gradient(var(--accent-primary) ${progressPct}%, var(--border-solid) 0)`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.5s' }}>
-                 <div style={{ width: '104px', height: '104px', borderRadius: '50%', background: 'var(--bg-card)', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', fontWeight: 900 }}>{progressPct}%</div>
+           <div className="card text-center" style={{ padding: '2rem' }}>
+              <div style={{ position: 'relative', width: '120px', height: '120px', margin: '0 auto 1.5rem', borderRadius: '50%', background: `conic-gradient(var(--accent-primary) ${progressPct}%, var(--border-solid) 0)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                 <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'var(--bg-card)', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 800 }}>{progressPct}%</div>
               </div>
-              <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 800, fontSize: '1.3rem' }}>You're doing great!</h4>
-              <p style={{ color: 'var(--text-secondary)', margin: 0, fontWeight: 500 }}>Complete {tasksTotal - tasksDone} more tasks to reach 100%.</p>
+              <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 700 }}>You're doing great!</h4>
+              <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Complete {tasksTotal - tasksDone} more tasks to reach 100%.</p>
            </div>
         </div>
       </div>
