@@ -180,19 +180,13 @@ const AuthView = () => {
   };
 
   return (
-    <div className="auth-container" style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      background: 'var(--bg-color)',
-      padding: '1rem'
-    }}>
+    <div className="auth-page-wrapper">
       <div className="card shadow-xl" style={{ 
         width: '100%', 
         maxWidth: '420px', 
         padding: '2.5rem',
-        animation: 'fadeSlideUp 0.5s ease-out'
+        animation: 'fadeSlideUp 0.5s ease-out',
+        background: 'var(--surface-color)'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div className="logo-icon mb-4" style={{ margin: '0 auto', width: '48px', height: '48px' }}>
