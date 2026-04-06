@@ -272,17 +272,19 @@ export const forgotUsername = async (req, res, next) => {
   }
 };
 
-// @desc    Update profile picture
+// @desc    Update profile picture (Base64)
 // @route   PUT /api/auth/profile-pic
 // @access  Private
 export const updateProfilePic = async (req, res, next) => {
   try {
-    if (!req.file) {
-      return next(new ErrorResponse('Please upload an image file', 400));
+    const { profilePic } = req.body;
+
+    if (!profilePic) {
+      return next(new ErrorResponse('Please provide a profile picture (Base64)', 400));
     }
 
     const user = await User.findById(req.user.id);
-    user.profilePic = req.file.path; // Cloudinary URL automatically added by multer-storage-cloudinary
+    user.profilePic = profilePic; // Store base64 direct in MongoDB
     await user.save();
 
     res.status(200).json({

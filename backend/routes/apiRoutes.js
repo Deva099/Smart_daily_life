@@ -21,7 +21,7 @@ router.post('/auth/forgot-password', forgotPassword);
 router.post('/auth/verify-otp', verifyOtp);
 router.post('/auth/reset-password', resetPassword);
 router.post('/auth/forgot-username', forgotUsername);
-router.put('/auth/profile-pic', protect, upload.single('image'), updateProfilePic);
+router.put('/auth/profile-pic', protect, updateProfilePic);
 router.get('/auth/profile', protect, getProfile);
 
 // --- Protected Routes ---

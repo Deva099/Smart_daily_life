@@ -103,16 +103,11 @@ export const getProfile = async () => {
   return handleResponse(response);
 };
 
-export const updateProfilePic = async (formData) => {
-  const token = localStorage.getItem('token');
+export const updateProfilePic = async (userData) => {
   const response = await fetch(`${API_URL}/auth/profile-pic`, {
     method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`
-      // Note: We DO NOT set 'Content-Type': 'multipart/form-data' manually.
-      // The browser will set it automatically with the correct boundary when passing FormData.
-    },
-    body: formData
+    headers: getHeaders(),
+    body: JSON.stringify(userData)
   });
   return handleResponse(response);
 };

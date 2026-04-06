@@ -68,24 +68,32 @@ const ProfileView = ({ theme, setTheme }) => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('image', file);
-
-    setUploading(true);
-    setMessage({ type: '', text: '' });
-
-    try {
-      const res = await updateProfilePic(formData);
-      updateUser({ profilePic: res.profilePic });
-      setMessage({ type: 'success', text: 'Profile picture updated!' });
-      
-      // Auto clear success message
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-    } catch (err) {
-      setMessage({ type: 'error', text: err.message || 'Upload failed' });
-    } finally {
+    const reader = new FileReader();
+    reader.onloadstart = () => setUploading(true);
+    reader.onerror = () => {
       setUploading(false);
-    }
+      setMessage({ type: 'error', text: 'Failed to read file' });
+    };
+
+    reader.onload = async () => {
+      const base64String = reader.result;
+      setMessage({ type: '', text: '' });
+
+      try {
+        const res = await updateProfilePic({ profilePic: base64String });
+        updateUser({ profilePic: res.profilePic });
+        setMessage({ type: 'success', text: 'Profile picture updated!' });
+        
+        // Auto clear success message
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      } catch (err) {
+        setMessage({ type: 'error', text: err.message || 'Upload failed' });
+      } finally {
+        setUploading(false);
+      }
+    };
+
+    reader.readAsDataURL(file);
   };
 
   return (
