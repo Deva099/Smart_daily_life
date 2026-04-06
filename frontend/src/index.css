@@ -484,7 +484,7 @@ input:focus, textarea:focus, select:focus {
 .avatar {
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   background: var(--surface-solid);
   display: flex;
   align-items: center;

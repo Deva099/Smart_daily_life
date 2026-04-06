@@ -124,6 +124,7 @@ const ProfileView = ({ theme, setTheme }) => {
             className="avatar" 
             style={{ 
               width: '120px', height: '120px', fontSize: '3rem', 
+              borderRadius: '50%',
               background: user.profilePic ? `url(${user.profilePic}) center/cover` : 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
               boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
               border: '4px solid var(--surface-solid)',
