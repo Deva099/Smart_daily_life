@@ -9,6 +9,7 @@ const TasksView = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState('Medium');
+  const [newTaskDate, setNewTaskDate] = useState(new Date().toISOString().split('T')[0]);
   const [newTaskTime, setNewTaskTime] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -63,11 +64,17 @@ const TasksView = () => {
       });
     }
 
+    let deadlineISO = null;
+    if (newTaskDate && newTaskTime) {
+      deadlineISO = new Date(`${newTaskDate}T${newTaskTime}`).toISOString();
+    }
+
     try {
       const savedTask = await createTask({
         title: newTaskTitle,
         priority: newTaskPriority,
         time: displayTime,
+        deadlineISO: deadlineISO
       });
       setTasks([savedTask, ...tasks]);
       setNewTaskTitle('');
@@ -82,6 +89,18 @@ const TasksView = () => {
     if (priority === 'High') return 'var(--danger)';
     if (priority === 'Medium') return 'var(--warning)';
     return 'var(--success)';
+  };
+
+  const getCountdown = (deadlineISO) => {
+    if (!deadlineISO) return null;
+    const now = new Date();
+    const deadline = new Date(deadlineISO);
+    const diffMs = deadline - now;
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 0) return { text: 'Expired', color: 'var(--danger)' };
+    if (diffMins <= 10) return { text: `${diffMins}m left`, color: diffMins <= 2 ? 'var(--danger)' : 'var(--warning)' };
+    return null;
   };
 
   return (
@@ -118,11 +137,18 @@ const TasksView = () => {
                 <option value="High">High Priority</option>
               </select>
               <input 
+                type="date" 
+                value={newTaskDate}
+                onChange={(e) => setNewTaskDate(e.target.value)}
+                style={{ flex: 1, minWidth: '150px', padding: '0.75rem' }}
+                required
+              />
+              <input 
                 type="time" 
                 value={newTaskTime}
                 onChange={(e) => setNewTaskTime(e.target.value)}
                 style={{ flex: 1, minWidth: '120px', padding: '0.75rem' }}
-                title="Optional: Set a reminder time"
+                required
               />
               <button type="button" className="btn btn-secondary" onClick={() => setIsAdding(false)}>Cancel</button>
               <button type="submit" className="btn btn-primary">Save Task</button>
@@ -156,6 +182,11 @@ const TasksView = () => {
                     <span className="flex items-center gap-1" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                       <Clock size={14} /> {task.time}
                     </span>
+                    {getCountdown(task.deadlineISO) && (
+                      <span className="badge animate-pulse-slow" style={{ background: getCountdown(task.deadlineISO).color, color: 'white', border: 'none', padding: '0.1rem 0.6rem', fontSize: '0.75rem', fontWeight: 800, borderRadius: '6px' }}>
+                        {getCountdown(task.deadlineISO).text}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

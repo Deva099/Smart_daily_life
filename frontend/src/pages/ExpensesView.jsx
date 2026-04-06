@@ -21,6 +21,7 @@ const ExpensesView = () => {
   const [loading, setLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisData, setAnalysisData] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
   
   // Form State
   const [title, setTitle] = useState('');
@@ -35,7 +36,7 @@ const ExpensesView = () => {
   const fetchExpenses = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5001/api/expenses', {
+      const res = await fetch(`${API_URL}/expenses`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -49,7 +50,7 @@ const ExpensesView = () => {
     if (!title || !amount) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5001/api/expenses', {
+      const res = await fetch(`${API_URL}/expenses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ title, amount: parseFloat(amount), category })
@@ -64,7 +65,7 @@ const ExpensesView = () => {
   const handleDeleteExpense = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5001/api/expenses/${id}`, {
+      const res = await fetch(`${API_URL}/expenses/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -77,7 +78,7 @@ const ExpensesView = () => {
     setIsAnalyzing(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5001/api/ai/finance', {
+      const res = await fetch(`${API_URL}/ai/finance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ 

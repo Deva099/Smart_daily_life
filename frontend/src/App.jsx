@@ -1,12 +1,13 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { NotificationProvider } from './context/NotificationContext';
+import { NotificationProvider, useNotifications } from './context/NotificationContext';
 import Sidebar from './components/Sidebar';
 import BottomNav from './components/BottomNav';
 import NotificationPopup from './components/NotificationPopup';
 import { Menu, Loader2, ArrowRight, LayoutGrid } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { fetchTasks } from './services/api';
 
 // Lazy load views
 const DashboardView = lazy(() => import('./pages/DashboardView'));
@@ -29,6 +30,61 @@ const ProtectedRoute = ({ children }) => {
   }
   
   return children;
+};
+
+const TaskReminderManager = () => {
+    const { token } = useAuth();
+    const { triggerSmartAlert } = useNotifications();
+    const notifiedRef = useRef(new Set());
+
+    useEffect(() => {
+        if (!token) return;
+
+        const checkDeadlines = async () => {
+            try {
+                const tasks = await fetchTasks();
+                if (!Array.isArray(tasks)) return;
+                
+                const now = new Date();
+                
+                tasks.forEach(task => {
+                    if (task.completed || !task.deadlineISO) return;
+                    
+                    const deadline = new Date(task.deadlineISO);
+                    const diffMs = deadline - now;
+                    const diffMins = Math.floor(diffMs / 60000);
+
+                    // 5-minute reminder
+                    if (diffMins === 5 && !notifiedRef.current.has(`${task._id}-5min`)) {
+                        triggerSmartAlert(
+                            "⏰ 5-Min Reminder", 
+                            `Task: "${task.title}" will be completed in 5 minutes. Please finish or review it.`
+                        );
+                        notifiedRef.current.add(`${task._id}-5min`);
+                    }
+
+                    // 1-minute/Deadline Alert
+                    if (diffMins >= 0 && diffMins <= 1 && !notifiedRef.current.has(`${task._id}-1min`)) {
+                        const countdownMsg = diffMins === 0 ? "EXPIRED" : `${diffMins} min left`;
+                        triggerSmartAlert(
+                            "⚠️ DEADLINE ALERT", 
+                            `Task "${task.title}" is not completed! Only ${countdownMsg}. Please complete as soon as possible.`,
+                            true
+                        );
+                        notifiedRef.current.add(`${task._id}-1min`);
+                    }
+                });
+            } catch (e) {
+                console.error("Reminder check failed", e);
+            }
+        };
+
+        const interval = setInterval(checkDeadlines, 30000); // Check every 30s
+        checkDeadlines();
+        return () => clearInterval(interval);
+    }, [token, triggerSmartAlert]);
+
+    return null;
 };
 
 const AppContent = () => {
@@ -146,6 +202,7 @@ function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
+        <TaskReminderManager />
         <AppContent />
       </NotificationProvider>
     </AuthProvider>

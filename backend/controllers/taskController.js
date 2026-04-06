@@ -18,7 +18,7 @@ export const getTasks = async (req, res, next) => {
 // @access  Private
 export const addTask = async (req, res, next) => {
   try {
-    const { title, priority, deadline, dateStr, hasReminder, reminderTime, notified } = req.body;
+    const { title, priority, deadline, deadlineISO, dateStr, hasReminder, reminderTime, notified } = req.body;
     
     if (!title || !title.trim()) {
       return next(new ErrorResponse('Task title is required', 400));
@@ -29,6 +29,7 @@ export const addTask = async (req, res, next) => {
       title: title.trim(), 
       priority: priority || 'Medium', 
       deadline,
+      deadlineISO,
       dateStr,
       hasReminder,
       reminderTime,
@@ -53,7 +54,7 @@ export const updateTask = async (req, res, next) => {
     }
     
     // Update fields
-    const fieldsToUpdate = ['title', 'priority', 'deadline', 'completed', 'dateStr', 'hasReminder', 'reminderTime', 'notified'];
+    const fieldsToUpdate = ['title', 'priority', 'deadline', 'deadlineISO', 'completed', 'dateStr', 'hasReminder', 'reminderTime', 'notified', 'notified_5min', 'notified_1min'];
     fieldsToUpdate.forEach(field => {
       if (req.body[field] !== undefined) {
         task[field] = (field === 'title') ? req.body[field].trim() : req.body[field];

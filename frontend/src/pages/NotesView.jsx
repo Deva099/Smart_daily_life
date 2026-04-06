@@ -9,11 +9,12 @@ const NotesView = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [savedNotes, setSavedNotes] = useState([]);
   const [activeNote, setActiveNote] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
 
   const fetchNotes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5001/api/notes', {
+      const res = await fetch(`${API_URL}/notes`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -50,7 +51,7 @@ const NotesView = () => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('token');
-      await fetch('http://localhost:5001/api/notes', {
+      await fetch(`${API_URL}/notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ title: noteTitle || 'Untitled Note', content: noteContent, tags: ['General'] })
@@ -65,7 +66,7 @@ const NotesView = () => {
     setIsSummarizing(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5001/api/ai/note-summarize', {
+      const res = await fetch(`${API_URL}/ai/note-summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ content: noteContent })

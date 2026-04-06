@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Calendar, Sparkles, Loader2, Trash2 } from 'lucide-react';
 
 const ScheduleView = () => {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState('');
@@ -14,11 +15,14 @@ const ScheduleView = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
-      const res = await fetch('http://localhost:5001/api/tasks', {
+      const res = await fetch(`${API_URL}/tasks`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
-      if (res.ok) setTasks(data);
+      if (res.ok) {
+          // Standardize data from .data if present
+          setTasks(data.data !== undefined ? data.data : data);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -30,7 +34,7 @@ const ScheduleView = () => {
     if (e.key === 'Enter' && newTask.trim()) {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5001/api/tasks', {
+        const res = await fetch(`${API_URL}/tasks`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ title: newTask, priority: 'High', deadline: new Date(Date.now() + 86400000) })
@@ -47,7 +51,7 @@ const ScheduleView = () => {
     try {
       const newStatus = task.status === 'completed' ? 'pending' : 'completed';
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5001/api/tasks/${task._id}`, {
+      await fetch(`${API_URL}/tasks/${task._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status: newStatus })
@@ -59,7 +63,7 @@ const ScheduleView = () => {
   const deleteTask = async (taskId) => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5001/api/tasks/${taskId}`, {
+      await fetch(`${API_URL}/tasks/${taskId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

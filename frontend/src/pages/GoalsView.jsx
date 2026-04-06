@@ -8,6 +8,7 @@ const GoalsView = () => {
   const [activeGoal, setActiveGoal] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
 
   useEffect(() => {
     fetchGoals();
@@ -17,7 +18,7 @@ const GoalsView = () => {
   const fetchGoals = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5001/api/goals', { 
+      const res = await fetch(`${API_URL}/goals`, { 
         headers: { 'Authorization': `Bearer ${token}` } 
       });
       const data = await res.json();
@@ -40,7 +41,7 @@ const GoalsView = () => {
     try {
       const token = localStorage.getItem('token');
       
-      const aiRes = await fetch('http://localhost:5001/api/ai/chat', {
+      const aiRes = await fetch(`${API_URL}/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ query: `Create a professional 3-phase milestone plan for this goal: ${goalInput}. Each phase should have 3-4 specific tasks. Format your response exactly as a list of phases and tasks.` })
@@ -66,7 +67,7 @@ const GoalsView = () => {
         }
       ];
 
-      const saveRes = await fetch('http://localhost:5001/api/goals', {
+      const saveRes = await fetch(`${API_URL}/goals`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -106,7 +107,7 @@ const GoalsView = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5001/api/goals/${activeGoal._id}`, {
+      const res = await fetch(`${API_URL}/goals/${activeGoal._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(updatedGoal)
@@ -119,7 +120,7 @@ const GoalsView = () => {
     if (!window.confirm("Are you sure you want to remove this goal?")) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5001/api/goals/${id}`, {
+      const res = await fetch(`${API_URL}/goals/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
