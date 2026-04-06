@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import Sidebar from './components/Sidebar';
@@ -146,9 +146,7 @@ function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <AppContent />
       </NotificationProvider>
     </AuthProvider>
   );
