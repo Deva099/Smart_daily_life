@@ -63,8 +63,8 @@ const ProfileView = ({ theme, setTheme }) => {
       setMessage({ type: 'error', text: 'Only JPG and PNG files are allowed.' });
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'File size must be less than 10MB.' });
+    if (file.size > 2 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'File size must be less than 2MB.' });
       return;
     }
 

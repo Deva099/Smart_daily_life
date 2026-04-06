@@ -283,6 +283,17 @@ export const updateProfilePic = async (req, res, next) => {
       return next(new ErrorResponse('Please provide a profile picture (Base64)', 400));
     }
 
+    // 1. Check size (approx 2MB after Base64 encoding overhead)
+    // Base64 is about 33% larger than binary. So 2MB binary -> ~2.7MB base64
+    if (profilePic.length > (2 * 1024 * 1024 * 1.35)) {
+      return next(new ErrorResponse('Image size must be less than 2MB', 400));
+    }
+
+    // 2. Check file type via Base64 header
+    if (!profilePic.match(/^data:image\/(png|jpg|jpeg);base64,/)) {
+      return next(new ErrorResponse('Only JPG and PNG formats are allowed', 400));
+    }
+
     const user = await User.findById(req.user.id);
     user.profilePic = profilePic; // Store base64 direct in MongoDB
     await user.save();
