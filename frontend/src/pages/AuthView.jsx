@@ -83,9 +83,9 @@ const AuthView = () => {
         const res = await loginUser({ email: formData.email, password: formData.password });
         console.log("API response:", res);
         
-        if (res.success && res.token) {
+        if (res && res.token) {
           authLogin(res.user, res.token);
-          window.location.href = "/";
+          // The navigate/redirect will happen naturally through AuthContext/App.jsx logic
         } else {
           setError('Invalid login response from server');
         }
@@ -99,10 +99,9 @@ const AuthView = () => {
         console.log("Signup API response:", res);
         setSuccess('Account created successfully! Logging you in...');
         
-        if (res.success && res.token) {
+        if (res && res.token) {
           setTimeout(() => {
             authSignup(res.user, res.token);
-            window.location.href = "/";
           }, 1500);
         }
       } else if (viewState === 'forgot-password') {
@@ -186,7 +185,7 @@ const AuthView = () => {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      background: 'var(--bg-primary)',
+      background: 'var(--bg-color)',
       padding: '1rem'
     }}>
       <div className="card shadow-xl" style={{ 

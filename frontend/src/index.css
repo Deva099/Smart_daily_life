@@ -126,12 +126,26 @@ p {
 }
 
 /* Layout Core */
+.app-wrapper {
+  min-height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg-color);
+}
+
+.auth-content {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .app-container {
   display: flex;
   height: 100vh;
-  max-width: 100vw;
+  width: 100%;
   overflow: hidden;
-  background-color: var(--bg-color);
 }
 
 .main-content {

@@ -53,42 +53,51 @@ const AppContent = () => {
 
   return (
     <Router>
-      <div className={`app-container ${theme}`}>
-        {token && (
-          <Sidebar 
-            isMobileOpen={isMobileOpen}
-            setIsMobileOpen={setIsMobileOpen}
-          />
-        )}
-        
-        <main className={token ? "main-content" : "auth-content"}>
-          {token && (
-            <button className="mobile-only-flex btn-icon-only mb-4" onClick={() => setIsMobileOpen(true)}>
-              <Menu size={24} />
-            </button>
-          )}
+      <div className={`app-wrapper ${theme}`}>
+        {!token ? (
+          <main className="auth-content">
+            <Suspense fallback={
+              <div className="flex items-center justify-center p-12">
+                <Loader2 className="animate-spin" size={32} color="var(--accent-primary)" />
+              </div>
+            }>
+              <Routes>
+                <Route path="/auth" element={<AuthView />} />
+                <Route path="*" element={<Navigate to="/auth" replace />} />
+              </Routes>
+            </Suspense>
+          </main>
+        ) : (
+          <div className="app-container">
+            <Sidebar 
+              isMobileOpen={isMobileOpen}
+              setIsMobileOpen={setIsMobileOpen}
+            />
+            
+            <main className="main-content">
+              <button className="mobile-only-flex btn-icon-only mb-4" onClick={() => setIsMobileOpen(true)}>
+                <Menu size={24} />
+              </button>
 
-          <Suspense fallback={
-            <div className="flex items-center justify-center p-12">
-              <Loader2 className="animate-spin" size={32} color="var(--accent-primary)" />
-            </div>
-          }>
-            <Routes>
-              <Route path="/auth" element={!token ? <AuthView /> : <Navigate to="/" />} />
-              
-              <Route path="/" element={<ProtectedRoute><DashboardView /></ProtectedRoute>} />
-              <Route path="/tasks" element={<ProtectedRoute><TasksView /></ProtectedRoute>} />
-              <Route path="/habits" element={<ProtectedRoute><HabitsView /></ProtectedRoute>} />
-              <Route path="/health" element={<ProtectedRoute><HealthView /></ProtectedRoute>} />
-              <Route path="/calendar" element={<ProtectedRoute><CalendarView /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><ProfileView theme={theme} setTheme={setTheme} /></ProtectedRoute>} />
-              <Route path="/assistant" element={<ProtectedRoute><AssistantView /></ProtectedRoute>} />
-              
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        </main>
+              <Suspense fallback={
+                <div className="flex items-center justify-center p-12">
+                  <Loader2 className="animate-spin" size={32} color="var(--accent-primary)" />
+                </div>
+              }>
+                <Routes>
+                  <Route path="/" element={<DashboardView />} />
+                  <Route path="/tasks" element={<TasksView />} />
+                  <Route path="/habits" element={<HabitsView />} />
+                  <Route path="/health" element={<HealthView />} />
+                  <Route path="/calendar" element={<CalendarView />} />
+                  <Route path="/profile" element={<ProfileView theme={theme} setTheme={setTheme} />} />
+                  <Route path="/assistant" element={<AssistantView />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+            </main>
+          </div>
+        )}
         <NotificationPopup />
       </div>
     </Router>
