@@ -29,6 +29,7 @@ const userSchema = new mongoose.Schema({
   },
   otp: String,
   otpExpiry: Date,
+  refreshToken: String,
   isPremium: {
     type: Boolean,
     default: false

@@ -1,22 +1,20 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+dotenv.config(); // Load env vars FIRST before anything else
+
 import connectDB from './config/db.js';
 import apiRoutes from './routes/apiRoutes.js';
 import { startNotificationEngine } from './services/notificationService.js';
+import errorHandler from './middleware/errorMiddleware.js';
 
-// process error listeners
+// Process error listeners
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
 });
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
 });
-
-import errorHandler from './middleware/errorMiddleware.js';
-
-// Setup environment variables
-dotenv.config();
 
 // Connect to MongoDB
 connectDB();

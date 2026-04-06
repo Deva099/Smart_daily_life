@@ -5,7 +5,7 @@ const taskSchema = new mongoose.Schema({
   priority: { type: String, enum: ['High', 'Medium', 'Low', 'None'], default: 'Medium' },
   deadline: { type: String }, 
   completed: { type: Boolean, default: false },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  userId: { type: String, required: true }, // Kept as String for backward compatibility with existing data
   dateStr: { type: String }, 
   hasReminder: { type: Boolean, default: false },
   reminderTime: { type: String },

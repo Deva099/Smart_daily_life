@@ -6,7 +6,7 @@ const habitSchema = new mongoose.Schema({
   repeat: { type: String, enum: ['daily', 'weekly', 'none'], default: 'daily' },
   completed: { type: Boolean, default: false },
   streak: { type: Number, default: 0 },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+  userId: { type: String, required: true } // Kept as String for backward compatibility with existing data
 }, { timestamps: true });
 
 // Indexes for fast lookup
