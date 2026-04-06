@@ -5,12 +5,12 @@ const BottomNav = ({ activeView, setActiveView, isVisible }) => {
   if (!isVisible) return null;
 
   const navItems = [
-    { id: 'dashboard', label: 'Home', icon: Home, path: '/' },
-    { id: 'tasks', label: 'Tasks', icon: CheckSquare, path: '/tasks' },
-    { id: 'habits', label: 'Habits', icon: Target, path: '/habits' },
-    { id: 'calendar', label: 'Calendar', icon: Calendar, path: '/calendar' },
-    { id: 'health', label: 'Health', icon: Activity, path: '/health' },
-    { id: 'profile', label: 'Profile', icon: User, path: '/profile' }
+    { id: 'dashboard', label: 'Home', icon: Home },
+    { id: 'tasks', label: 'Tasks', icon: CheckSquare },
+    { id: 'habits', label: 'Habits', icon: Target },
+    { id: 'calendar', label: 'Cal', icon: Calendar },
+    { id: 'health', label: 'Health', icon: Activity },
+    { id: 'profile', label: 'Me', icon: User }
   ];
 
   return (
@@ -24,9 +24,14 @@ const BottomNav = ({ activeView, setActiveView, isVisible }) => {
             key={item.id}
             onClick={() => setActiveView(item.id)}
             className={`nav-item-bottom ${isActive ? 'active' : ''}`}
+            style={{ color: isActive ? 'var(--accent-primary)' : undefined }}
           >
             <div className="icon-wrapper">
-              <Icon size={22} className={isActive ? 'text-accent' : ''} />
+              <Icon
+                size={20}
+                color={isActive ? 'var(--accent-primary)' : 'var(--text-muted)'}
+                strokeWidth={isActive ? 2.5 : 1.8}
+              />
               {isActive && <div className="active-dot" />}
             </div>
             <span>{item.label}</span>
