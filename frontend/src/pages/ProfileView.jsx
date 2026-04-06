@@ -187,6 +187,14 @@ const ProfileView = ({ theme, setTheme }) => {
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 500 }}>
           SmartLife Member <span style={{ opacity: 0.6 }}>since 2026</span>
         </p>
+        <p style={{ 
+          fontSize: '0.8rem', color: 'var(--text-muted)', 
+          marginTop: '0.5rem', fontWeight: 500, letterSpacing: '0.02em',
+          background: 'var(--accent-primary-light)', padding: '0.25rem 0.75rem',
+          borderRadius: '20px'
+        }}>
+          JPG, PNG • Max 2MB
+        </p>
       </div>
 
       <div className="card" style={{ padding: '2rem', border: '1px solid var(--border-color)' }}>
