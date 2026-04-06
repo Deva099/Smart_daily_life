@@ -1,0 +1,16 @@
+{
+  "name": "smart-daily-life-fullstack",
+  "version": "1.0.0",
+  "description": "Smart Daily Life Full-Stack Application Orchestrator",
+  "private": true,
+  "scripts": {
+    "dev": "npx concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
+    "start": "npx concurrently \"npm run start --prefix frontend\" \"npm run start --prefix backend\"",
+    "install-all": "npm install && npm install --prefix frontend && npm install --prefix backend",
+    "frontend": "npm run dev --prefix frontend",
+    "backend": "npm run dev --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
