@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider, useNotifications } from './context/NotificationContext';
+import { SettingsProvider, useSettingsContext } from './context/SettingsContext';
 import Sidebar from './components/Sidebar';
 import BottomNav from './components/BottomNav';
 import NotificationPopup from './components/NotificationPopup';
@@ -33,13 +34,27 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+/**
+ * TaskReminderManager
+ * Now respects user notification settings:
+ * - taskReminders toggle (on/off)
+ * - reminderTime setting (5/10/30 min lead time)
+ * - sound and vibration preferences
+ */
 const TaskReminderManager = () => {
     const { token } = useAuth();
     const { triggerSmartAlert } = useNotifications();
+    const { getSetting } = useSettingsContext();
     const notifiedRef = useRef(new Set());
 
     useEffect(() => {
         if (!token) return;
+
+        // Check if reminders are enabled
+        const taskRemindersEnabled = getSetting('notifications', 'taskReminders');
+        if (taskRemindersEnabled === false) return;
+
+        const reminderLeadTime = parseInt(getSetting('notifications', 'reminderTime') || '10', 10);
 
         const checkDeadlines = async () => {
             try {
@@ -55,21 +70,21 @@ const TaskReminderManager = () => {
                     const diffMs = deadline - now;
                     const diffMins = Math.floor(diffMs / 60000);
 
-                    // 5-minute reminder
-                    if (diffMins === 5 && !notifiedRef.current.has(`${task._id}-5min`)) {
+                    // Dynamic reminder based on user setting (5/10/30 min)
+                    if (diffMins === reminderLeadTime && !notifiedRef.current.has(`${task._id}-lead`)) {
                         triggerSmartAlert(
-                            "⏰ 5-Min Reminder", 
-                            `Task: "${task.title}" will be completed in 5 minutes. Please finish or review it.`
+                            `⏰ ${reminderLeadTime}-Min Reminder`, 
+                            `Task: "${task.title}" is due in ${reminderLeadTime} minutes. Time to wrap up!`
                         );
-                        notifiedRef.current.add(`${task._id}-5min`);
+                        notifiedRef.current.add(`${task._id}-lead`);
                     }
 
-                    // 1-minute/Deadline Alert
+                    // 1-minute/Deadline Alert (always fires if reminders are on)
                     if (diffMins >= 0 && diffMins <= 1 && !notifiedRef.current.has(`${task._id}-1min`)) {
                         const countdownMsg = diffMins === 0 ? "EXPIRED" : `${diffMins} min left`;
                         triggerSmartAlert(
                             "⚠️ DEADLINE ALERT", 
-                            `Task "${task.title}" is not completed! Only ${countdownMsg}. Please complete as soon as possible.`,
+                            `Task "${task.title}" is not completed! Only ${countdownMsg}. Please complete ASAP.`,
                             true
                         );
                         notifiedRef.current.add(`${task._id}-1min`);
@@ -83,7 +98,7 @@ const TaskReminderManager = () => {
         const interval = setInterval(checkDeadlines, 30000); // Check every 30s
         checkDeadlines();
         return () => clearInterval(interval);
-    }, [token, triggerSmartAlert]);
+    }, [token, triggerSmartAlert, getSetting]);
 
     return null;
 };
@@ -139,61 +154,64 @@ const AppContent = () => {
           </Suspense>
         </main>
       ) : (
-        <div className="app-container">
-          {/* Sidebar - Visible ONLY on Desktop */}
-          <div className="desktop-only-flex">
-            <Sidebar 
-              isMobileOpen={isMobileOpen}
-              setIsMobileOpen={setIsMobileOpen}
+        <SettingsProvider>
+          <div className="app-container">
+            {/* Sidebar - Visible ONLY on Desktop */}
+            <div className="desktop-only-flex">
+              <Sidebar 
+                isMobileOpen={isMobileOpen}
+                setIsMobileOpen={setIsMobileOpen}
+              />
+            </div>
+            
+            <main className="main-content">
+              {/* Mobile Header - Visible only on mobile */}
+              <div className="mobile-header mobile-only-flex">
+                <div className="mobile-logo">
+                  <div className="logo-icon" style={{ background: 'rgba(124, 58, 237, 0.1)', padding: '0.4rem', borderRadius: '12px' }}>
+                    <LayoutGrid size={24} color="var(--accent-primary)" />
+                  </div>
+                  <span>SmartLife</span>
+                </div>
+                <div 
+                  className="mobile-avatar" 
+                  onClick={() => navigate('/profile')}
+                  style={{ 
+                    background: user?.profilePic ? `url(${user.profilePic}) center/cover` : 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', fontWeight: 700, color: 'white'
+                  }}
+                >
+                  {!user?.profilePic && initial}
+                </div>
+              </div>
+
+              <Suspense fallback={
+                <div className="flex items-center justify-center p-12">
+                  <Loader2 className="animate-spin" size={32} color="var(--accent-primary)" />
+                </div>
+              }>
+                <Routes>
+                  <Route path="/" element={<DashboardView />} />
+                  <Route path="/tasks" element={<TasksView />} />
+                  <Route path="/habits" element={<HabitsView />} />
+                  <Route path="/health" element={<HealthView />} />
+                  <Route path="/calendar" element={<CalendarView />} />
+                  <Route path="/profile" element={<ProfileView theme={theme} setTheme={setTheme} />} />
+                  <Route path="/settings" element={<SettingsView theme={theme} setTheme={setTheme} />} />
+                  <Route path="/assistant" element={<AssistantView />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+            </main>
+
+            <BottomNav 
+              activeView={getActiveView()} 
+              setActiveView={(id) => navigate(id === 'dashboard' ? '/' : `/${id}`)}
+              isVisible={true} 
             />
           </div>
-          
-          <main className="main-content">
-            {/* Mobile Header - Visible only on mobile */}
-            <div className="mobile-header mobile-only-flex">
-              <div className="mobile-logo">
-                <div className="logo-icon" style={{ background: 'rgba(124, 58, 237, 0.1)', padding: '0.4rem', borderRadius: '12px' }}>
-                  <LayoutGrid size={24} color="var(--accent-primary)" />
-                </div>
-                <span>SmartLife</span>
-              </div>
-              <div 
-                className="mobile-avatar" 
-                onClick={() => navigate('/profile')}
-                style={{ 
-                  background: user?.profilePic ? `url(${user.profilePic}) center/cover` : 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', fontWeight: 700, color: 'white'
-                }}
-              >
-                {!user?.profilePic && initial}
-              </div>
-            </div>
-
-            <Suspense fallback={
-              <div className="flex items-center justify-center p-12">
-                <Loader2 className="animate-spin" size={32} color="var(--accent-primary)" />
-              </div>
-            }>
-              <Routes>
-                <Route path="/" element={<DashboardView />} />
-                <Route path="/tasks" element={<TasksView />} />
-                <Route path="/habits" element={<HabitsView />} />
-                <Route path="/health" element={<HealthView />} />
-                <Route path="/calendar" element={<CalendarView />} />
-                <Route path="/profile" element={<ProfileView theme={theme} setTheme={setTheme} />} />
-                <Route path="/settings" element={<SettingsView theme={theme} setTheme={setTheme} />} />
-                <Route path="/assistant" element={<AssistantView />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Suspense>
-          </main>
-
-          <BottomNav 
-            activeView={getActiveView()} 
-            setActiveView={(id) => navigate(id === 'dashboard' ? '/' : `/${id}`)}
-            isVisible={true} 
-          />
-        </div>
+          <TaskReminderManager />
+        </SettingsProvider>
       )}
       <NotificationPopup />
     </div>
@@ -204,7 +222,6 @@ function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <TaskReminderManager />
         <AppContent />
       </NotificationProvider>
     </AuthProvider>

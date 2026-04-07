@@ -120,6 +120,32 @@
   }
 }
 
+/* ─── Font Size Scaling (applied via html class) ─────────────── */
+html.font-small { font-size: 14px; }
+html.font-medium { font-size: 16px; }
+html.font-large { font-size: 18px; }
+
+/* ─── High Contrast Mode ─────────────────────────────────────── */
+html.high-contrast {
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #cbd5e1;
+  --border-color: rgba(255, 255, 255, 0.2);
+  --border-solid: #64748b;
+}
+html.high-contrast .card,
+html.high-contrast .bottom-nav,
+html.high-contrast .sidebar {
+  border: 1.5px solid var(--border-solid);
+}
+
+/* ─── Layout Density ─────────────────────────────────────────── */
+html.density-compact .card { padding: 0.85rem; }
+html.density-compact .main-content { padding: 1.5rem 1.75rem; gap: 0.75rem; }
+html.density-compact .setting-row { padding: 0.55rem 0; }
+
+html.density-comfortable .card { padding: 1.35rem; }
+
 * {
   box-sizing: border-box;
   margin: 0;

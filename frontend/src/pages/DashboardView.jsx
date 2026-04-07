@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Target, CheckSquare, HeartPulse, Droplets, Book, Dumbbell, Plus, Check, X, Flame, Activity, Zap } from 'lucide-react';
 import { fetchTasks, fetchHabits, createHabit, updateHabit, updateTask } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useSettingsContext } from '../context/SettingsContext';
 
 const DashboardView = ({ setActiveView }) => {
   const [tasks, setTasks] = useState([]);
@@ -14,7 +15,11 @@ const DashboardView = ({ setActiveView }) => {
   const [newHabitRepeat, setNewHabitRepeat] = useState('daily');
 
   const { user } = useAuth();
+  const { getSetting } = useSettingsContext();
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  // Daily goal from settings (default to total tasks if not set)
+  const dailyGoal = parseInt(getSetting('productivity', 'dailyGoal') || '5', 10);
 
   useEffect(() => {
     fetchData();
@@ -38,7 +43,9 @@ const DashboardView = ({ setActiveView }) => {
 
   const tasksDone = tasks.filter(t => t.completed).length;
   const tasksTotal = tasks.length;
-  const progressPct = tasksTotal === 0 ? 0 : Math.round((tasksDone / tasksTotal) * 100);
+  // Progress is now based on daily goal from settings  
+  const goalTarget = Math.max(dailyGoal, tasksTotal);
+  const progressPct = goalTarget === 0 ? 0 : Math.min(100, Math.round((tasksDone / goalTarget) * 100));
   const activeHabitStreak = habits.reduce((max, h) => h.streak > max ? h.streak : max, 0);
 
   const toggleTask = async (id, currentStatus) => {
@@ -141,7 +148,7 @@ const DashboardView = ({ setActiveView }) => {
 
       <div className="flex justify-between items-baseline mb-4">
         <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>Goal Progress</h3>
-        <p style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', fontWeight: 700 }}>{progressPct}% COMPLETE</p>
+        <p style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', fontWeight: 700 }}>{tasksDone}/{dailyGoal} DAILY GOAL</p>
       </div>
       <div className="card flex justify-between items-center" style={{ padding: '1.8rem', marginBottom: '2.5rem', borderRadius: '20px', border: '1px solid var(--border-color)', background: 'var(--surface-color)', boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
          <div style={{ flex: 1, paddingRight: '1rem' }}>

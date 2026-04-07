@@ -17,6 +17,22 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
+  // Read sound/vibration prefs from localStorage settings cache
+  const getNotifPrefs = () => {
+    try {
+      const cached = localStorage.getItem('smartlife_settings');
+      if (cached) {
+        const s = JSON.parse(cached);
+        return {
+          sound: s?.notifications?.sound !== false,
+          vibration: s?.soundFeedback?.vibration !== false,
+          haptic: s?.soundFeedback?.hapticFeedback !== false,
+        };
+      }
+    } catch {}
+    return { sound: true, vibration: true, haptic: true };
+  };
+
   // Poll Backend Notification Engine
   useEffect(() => {
     const pollBackendNotifications = async () => {
@@ -25,11 +41,19 @@ export const NotificationProvider = ({ children }) => {
         const data = await response.json();
         
         if (data && data.length > 0) {
+          const prefs = getNotifPrefs();
+          
           data.forEach(async (notif) => {
             setActiveAlerts(prev => {
               if (!prev.find(a => a.id === notif.id)) {
-                if (audioRef.current) audioRef.current.play().catch(()=>{});
-                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                // Respect sound setting
+                if (prefs.sound && audioRef.current) {
+                  audioRef.current.play().catch(()=>{});
+                }
+                // Respect vibration setting
+                if (prefs.vibration && typeof navigator !== 'undefined' && navigator.vibrate) {
+                  navigator.vibrate([200, 100, 200]);
+                }
                 
                 // Fire and forget delete so the backend clears it from buffer
                 fetch(`${API_URL}/notifications/${notif.id}`, { method: 'DELETE' }).catch(console.error);
@@ -51,6 +75,7 @@ export const NotificationProvider = ({ children }) => {
   }, []);
 
   const triggerSmartAlert = (title, message, isUrgent = false) => {
+    const prefs = getNotifPrefs();
     const id = Date.now();
     const newAlert = {
       id,
@@ -62,12 +87,14 @@ export const NotificationProvider = ({ children }) => {
 
     setActiveAlerts(prev => [...prev, newAlert]);
     
-    if (audioRef.current) {
+    // Respect sound setting
+    if (prefs.sound && audioRef.current) {
         audioRef.current.currentTime = 0;
         audioRef.current.play().catch(()=>{});
     }
     
-    if (isUrgent && typeof navigator !== 'undefined' && navigator.vibrate) {
+    // Respect vibration setting
+    if (isUrgent && prefs.vibration && typeof navigator !== 'undefined' && navigator.vibrate) {
         navigator.vibrate([300, 100, 300, 100, 500]);
     }
   };
@@ -81,7 +108,7 @@ export const NotificationProvider = ({ children }) => {
     dismissAlert(id);
   };
   
-  // Stubs for RemindersView backwards compability
+  // Stubs for RemindersView backwards compatibility
   const [reminders, setReminders] = useState([]);
   const addReminder = () => {};
   const toggleReminder = () => {};
