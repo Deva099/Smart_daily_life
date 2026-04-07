@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Activity, HeartPulse, User, Bell, Calendar, X, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Activity, HeartPulse, User, Bell, Calendar, X, PanelLeftClose, PanelLeft, Settings } from 'lucide-react';
 
 const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -12,6 +12,7 @@ const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
     { id: 'calendar', path: '/calendar', label: 'Calendar', icon: Calendar },
     { id: 'health', path: '/health', label: 'Health', icon: HeartPulse },
     { id: 'profile', path: '/profile', label: 'Profile', icon: User },
+    { id: 'settings', path: '/settings', label: 'Settings', icon: Settings },
   ];
 
   return (

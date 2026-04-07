@@ -19,6 +19,7 @@ const RemindersView = lazy(() => import('./pages/RemindersView'));
 const ProfileView = lazy(() => import('./pages/ProfileView'));
 const AuthView = lazy(() => import('./pages/AuthView'));
 const AssistantView = lazy(() => import('./pages/AssistantView'));
+const SettingsView = lazy(() => import('./pages/SettingsView'));
 
 const ProtectedRoute = ({ children }) => {
   const { token, loading } = useAuth();
@@ -180,6 +181,7 @@ const AppContent = () => {
                 <Route path="/health" element={<HealthView />} />
                 <Route path="/calendar" element={<CalendarView />} />
                 <Route path="/profile" element={<ProfileView theme={theme} setTheme={setTheme} />} />
+                <Route path="/settings" element={<SettingsView theme={theme} setTheme={setTheme} />} />
                 <Route path="/assistant" element={<AssistantView />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
