@@ -6,6 +6,7 @@ import { getNotes, addNote, updateNote, deleteNote } from '../controllers/noteCo
 import { getGoals, addGoal, deleteGoal, updateGoal } from '../controllers/goalController.js';
 import { getExpenses, addExpense, deleteExpense } from '../controllers/expenseController.js';
 import { signup, login, checkEmail, forgotPassword, verifyOtp, resetPassword, forgotUsername, getProfile, refresh, updateProfilePic } from '../controllers/authController.js';
+import { getSettings, updateSettings, resetSettings } from '../controllers/settingsController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
 import { activeNotifications, clearNotification } from '../services/notificationService.js';
@@ -55,5 +56,9 @@ router.route('/goals/:id').put(protect, updateGoal).delete(protect, deleteGoal);
 // Expenses
 router.route('/expenses').get(protect, getExpenses).post(protect, addExpense);
 router.route('/expenses/:id').delete(protect, deleteExpense);
+
+// Settings
+router.route('/settings').get(protect, getSettings).put(protect, updateSettings);
+router.post('/settings/reset', protect, resetSettings);
 
 export default router;

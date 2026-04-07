@@ -281,3 +281,26 @@ export const getDashboardSummary = async (data) => {
   });
   return handleResponse(response);
 };
+
+// --- SETTINGS API ---
+export const fetchSettings = async () => {
+  const response = await fetch(`${API_URL}/settings`, { headers: getHeaders() });
+  return handleResponse(response);
+};
+
+export const updateSettingsAPI = async (updates) => {
+  const response = await fetch(`${API_URL}/settings`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify(updates)
+  });
+  return handleResponse(response);
+};
+
+export const resetSettingsAPI = async () => {
+  const response = await fetch(`${API_URL}/settings/reset`, {
+    method: 'POST',
+    headers: getHeaders()
+  });
+  return handleResponse(response);
+};
