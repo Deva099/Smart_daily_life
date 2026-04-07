@@ -147,7 +147,7 @@ const ExpensesView = () => {
 
   const chartOptions = {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } } },
+    plugins: { legend: { position: window.innerWidth <= 768 ? 'bottom' : 'right', labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } } },
     cutout: '70%'
   };
 
@@ -170,7 +170,7 @@ const ExpensesView = () => {
       <div className="dashboard-grid" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
         
         {/* Add Expense Form */}
-        <div className="glass-panel" style={{ flex: '1 1 350px', padding: '2rem' }}>
+        <div className="glass-panel" style={{ flex: '1 1 280px', padding: '1.5rem' }}>
           <h4 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <Plus size={20} color="var(--accent-primary)" /> Add Transaction
           </h4>
@@ -187,7 +187,7 @@ const ExpensesView = () => {
         </div>
 
         {/* AI Advisor Input */}
-        <div className="glass-panel" style={{ flex: '1 1 450px', padding: '2rem' }}>
+        <div className="glass-panel" style={{ flex: '1 1 300px', padding: '1.5rem' }}>
           <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <Sparkles size={20} color="var(--accent-primary)" /> Smart Financial Advisor
           </h4>
@@ -208,9 +208,9 @@ const ExpensesView = () => {
 
       {/* Stats Bar */}
       <div className="dashboard-grid" style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-        <div className="glass-panel" style={{ flex: '1 1 200px', padding: '1.5rem' }}>
+        <div className="glass-panel" style={{ flex: '1 1 140px', padding: '1.25rem' }}>
           <p style={{ fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Total Expenditure</p>
-          <h3 style={{ fontSize: '2rem', color: 'white', fontWeight: 700 }}>${totalSpent.toLocaleString()}</h3>
+          <h3 style={{ fontSize: '1.75rem', color: 'white', fontWeight: 700 }}>${totalSpent.toLocaleString()}</h3>
         </div>
         <div className="glass-panel" style={{ flex: '1 1 200px', padding: '1.5rem' }}>
           <p style={{ fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Top Category</p>

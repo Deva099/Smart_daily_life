@@ -125,9 +125,10 @@ const AssistantView = () => {
       color: 'white',
       overflow: 'hidden',
       position: 'relative',
-      borderRadius: '24px',
-      border: '1px solid rgba(255,255,255,0.05)',
-      boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+      borderRadius: window.innerWidth <= 768 ? '0' : '24px',
+      border: window.innerWidth <= 768 ? 'none' : '1px solid rgba(255,255,255,0.05)',
+      boxShadow: window.innerWidth <= 768 ? 'none' : '0 20px 40px rgba(0,0,0,0.4)',
+      marginBottom: window.innerWidth <= 768 ? '-16px' : '0',
     }}>
 
       {/* BACKGROUND EFFECTS */}

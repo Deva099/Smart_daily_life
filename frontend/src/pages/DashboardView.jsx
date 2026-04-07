@@ -203,8 +203,8 @@ const DashboardView = ({ setActiveView }) => {
         ))}
       </div>
       
-      <button className="fab" onClick={() => setIsAddingHabit(true)} style={{ background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', bottom: '100px', boxShadow: '0 8px 30px rgba(124, 58, 237, 0.4)' }}>
-        <Plus size={32} />
+      <button className="fab" onClick={() => setIsAddingHabit(true)} style={{ bottom: '90px', boxShadow: '0 8px 30px rgba(124, 58, 237, 0.4)' }}>
+        <Plus size={28} />
       </button>
     </div>
   );

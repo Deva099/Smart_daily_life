@@ -130,8 +130,8 @@ const TasksView = () => {
               required
               autoFocus
             />
-            <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
-              <select value={newTaskPriority} onChange={(e) => setNewTaskPriority(e.target.value)} style={{ flex: 1, minWidth: '120px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem' }}>
+              <select value={newTaskPriority} onChange={(e) => setNewTaskPriority(e.target.value)}>
                 <option value="Low">Low Priority</option>
                 <option value="Medium">Medium Priority</option>
                 <option value="High">High Priority</option>
@@ -140,18 +140,18 @@ const TasksView = () => {
                 type="date" 
                 value={newTaskDate}
                 onChange={(e) => setNewTaskDate(e.target.value)}
-                style={{ flex: 1, minWidth: '150px', padding: '0.75rem' }}
                 required
               />
               <input 
                 type="time" 
                 value={newTaskTime}
                 onChange={(e) => setNewTaskTime(e.target.value)}
-                style={{ flex: 1, minWidth: '120px', padding: '0.75rem' }}
                 required
               />
-              <button type="button" className="btn btn-secondary" onClick={() => setIsAdding(false)}>Cancel</button>
-              <button type="submit" className="btn btn-primary">Save Task</button>
+              <div className="flex gap-2" style={{ gridColumn: '1 / -1' }}>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setIsAdding(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Save Task</button>
+              </div>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>Selecting a time will automatically schedule a smart reminder.</p>
           </form>

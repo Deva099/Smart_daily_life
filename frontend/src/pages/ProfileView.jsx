@@ -126,7 +126,7 @@ const ProfileView = ({ theme, setTheme }) => {
 
       <div className="card flex flex-col items-center justify-center mb-6" style={{ 
         textAlign: 'center', 
-        padding: '3.5rem 2rem',
+        padding: window.innerWidth <= 768 ? '2rem 1.5rem' : '3.5rem 2rem',
         background: 'var(--bg-card-gradient)',
         border: '1px solid var(--border-color)',
         position: 'relative',

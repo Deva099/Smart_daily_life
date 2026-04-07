@@ -90,23 +90,23 @@ const HealthView = () => {
 
   return (
     <div className="view-section" style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
         <div>
           <h2 style={{ margin: 0, fontSize: '1.75rem' }}>Health Center</h2>
           <p style={{ margin: 0 }}>Track your daily wellness progress securely.</p>
         </div>
         
         {/* Date Navigator */}
-        <div className="flex items-center gap-4 bg-white dark:bg-slate-800 rounded-full shadow-sm" style={{ padding: '0.4rem', border: '1px solid var(--border-color)' }}>
-          <button className="btn-icon-only" onClick={() => changeDate(-1)}><ChevronLeft size={20} /></button>
-          <span style={{ fontWeight: 600, minWidth: '100px', textAlign: 'center' }}>{displayDate}</span>
-          <button className="btn-icon-only" onClick={() => changeDate(1)} disabled={isToday} style={{ opacity: isToday ? 0.3 : 1 }}>
-            <ChevronRight size={20} />
+        <div className="flex items-center gap-2" style={{ padding: '0.35rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-full)', flexShrink: 0 }}>
+          <button className="btn-icon-only" onClick={() => changeDate(-1)} style={{ padding: '0.3rem' }}><ChevronLeft size={18} /></button>
+          <span style={{ fontWeight: 600, minWidth: '85px', textAlign: 'center', fontSize: '0.9rem' }}>{displayDate}</span>
+          <button className="btn-icon-only" onClick={() => changeDate(1)} disabled={isToday} style={{ opacity: isToday ? 0.3 : 1, padding: '0.3rem' }}>
+            <ChevronRight size={18} />
           </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
         
         {/* Water Tracker */}
         <div className="card text-center relative" style={{ borderTop: '4px solid #3b82f6', display: 'flex', flexDirection: 'column', height: '100%' }}>
